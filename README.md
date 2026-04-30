@@ -4,7 +4,7 @@ A 3D visualisation of the properties of miniatures paints.
 Notice: PaintSpace was created with generative AI. 
 
 ## To add your paints
-Create a CSV file with columns for:
+Create a CSV file in this format: 
 
 | Paint Name | Brand | Hex Code | Owned | Type |
 | -- | -- | -- | -- | -- |
