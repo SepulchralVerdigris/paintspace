@@ -6,7 +6,9 @@ Notice: PaintSpace was created with generative AI.
 ## To add your paints
 Create a CSV file with columns for:
 
-Paint Name | Brand | Hex Code | Set | Type
+| Paint Name | Brand | Hex Code | Owned | Type |
+| -- | -- | -- | -- | -- |
+| Pink | Company | #d47a83 | 1 | Normal |
 
 ### Owned
 
