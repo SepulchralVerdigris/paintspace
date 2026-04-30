@@ -1,0 +1,113 @@
+Name,Brand,Types,Owned,Hex
+Matt Black,Army Painter,Air,1,#010101
+Matt White,Army Painter,Air,0,#fefefe
+Pure Red,Army Painter,Air,0,#d02128
+Lava Orange,Army Painter,Air,0,#e35628
+Daemonic Yellow,Army Painter,Air,0,#f9d50d
+Greenskin,Army Painter,Air,1,#106232
+Angel Green,Army Painter,Air,1,#153822
+Crystal Blue,Army Painter,Air,0,#0683c3
+Ultramarine Blue,Army Painter,Air,0,#124e84
+Uniform Grey,Army Painter,Air,1,#606970
+Leather Brown,Army Painter,Air,1,#774925
+Oak Brown,Army Painter,Air,0,#442314
+Skeleton Bone,Army Painter,Air,0,#ccc79d
+Barbarian Flesh,Army Painter,Air,1,#e89c6b
+Alien Purple,Army Painter,Air,1,#53317d
+Shining Silver,Army Painter,Air|Metallic,0,#b2b2b2
+Plate Mail Metal,Army Painter,Air|Metallic,1,#787878
+Greedy Gold,Army Painter,Air|Metallic,0,#d2992e
+Chaotic Red,Army Painter,Air,0,#6c1c27
+Elemental Bolt,Army Painter,Air,0,#009a82
+Pixie Pink,Army Painter,Air,1,#d47a83
+True Copper,Army Painter,Air|Metallic,0,#d57a34
+Rough Iron,Army Painter,Air|Metallic,0,#46332f
+Tainted Gold,Army Painter,Air|Metallic,1,#716c42
+Elven Armor,Army Painter,Air|Metallic,0,#27488e
+Glitter Green,Army Painter,Air|Metallic,1,#4e8743
+Gemstone,Army Painter,Air|Metallic,1,#983329
+Gauss Green,Army Painter,Air|Fluo,1,#4eab26
+Encarmine Red,Army Painter,Air,1,#8f1520
+Molten Orange,Army Painter,Air,1,#d9532a
+Incursion Orange,Army Painter,Air,0,#f38009
+Savage Green,Army Painter,Air,1,#015929
+Unforgiven Green,Army Painter,Air,1,#202a22
+Sapphire Gem,Army Painter,Air,0,#01508f
+Omega Blue,Army Painter,Air,0,#013f72
+Regiment Grey,Army Painter,Air,1,#465454
+Rawhide Brown,Army Painter,Air,1,#603c22
+Magnolia Brown,Army Painter,Air,1,#2e2e22
+Charred Bone,Army Painter,Air,0,#9f835c
+Nomad Flesh,Army Painter,Air,0,#cf6c4f
+Broodmother Purple,Army Painter,Air,1,#272143
+Traitor Red,Army Painter,Air,1,#3d241d
+Majestic Fortress,Army Painter,Air,1,#00735e
+Fairy Pink,Army Painter,Air,1,#9e3e6e
+Archangel Red,Army Painter,Air,0,#c92d1e
+Orange Magma,Army Painter,Air,0,#f0a257
+Imp Yellow,Army Painter,Air,1,#f1c668
+Feral Green,Army Painter,Air,0,#57935e
+Exile Green,Army Painter,Air,1,#467263
+Ionic Blue,Army Painter,Air,1,#019fd1
+Consul Blue,Army Painter,Air,1,#5177a4
+Cadre Grey,Army Painter,Air,0,#96a4a5
+Bullwhack Brown,Army Painter,Air,0,#9f6e45
+Cypress Brown,Army Painter,Air,1,#644e39
+Bleached Bone,Army Painter,Air,0,#e3ddb9
+Wildling Flesh,Army Painter,Air,1,#f49d82
+Coven Purple,Army Painter,Air,0,#906694
+Rebel Red,Army Painter,Air,0,#911039
+Psychic Shock,Army Painter,Air,0,#41ae9b
+Fey Pink,Army Painter,Air,0,#db98b9
+Mithril,Army Painter,Metallic,1,#909195
+Macragge Blue,Citadel,Normal,0,#0d407f
+Warplock Bronze,Citadel,Normal,0,#624a4a
+Flash Gitz Yellow,Citadel,Normal,0,#fef200
+Auric Armour Gold,Citadel,Metallic,0,#e1a533
+Stormhost Silver,Citadel,Metallic,1,#afbdc0
+Nihilakh Oxide,Citadel,Technical,1,#6db79e
+Iyanden Yellow,Citadel,Contrast,0,#fa9916
+Blood Angels Red,Citadel,Contrast,1,#b1101e
+Creed Camo,Citadel,Contrast,0,#374834
+Skeleton Horde,Citadel,Contrast,1,#b27936
+Snakebite Leather,Citadel,Contrast,1,#6a3817
+Wyldwood,Citadel,Contrast,1,#0d0d0d
+Guilliman Flesh,Citadel,Contrast,0,#843723
+Apothecary White,Citadel,Contrast,0,#8d9794
+Basilicanum Grey,Citadel,Contrast,0,#332e30
+Black Templar,Citadel,Contrast,1,#111212
+Talassar Blue,Citadel,Contrast,0,#0054bc
+Doomfire Magenta,Citadel,Contrast,0,#b60019
+Titanium White,Golden,Normal,1,#eef0ef
+Bold Titanium White,Pro Acryl,Normal,1,#eef0ef
+Green,Pro Acryl,Normal,0,#007f42
+Burnt Red,Pro Acryl,Normal,1,#792117
+Turquoise,Pro Acryl,Normal,1,#01b1cd
+Grey Blue,Pro Acryl,Normal,1,#619fc6
+Blue Black,Pro Acryl,Normal,0,#303b47
+Bright Pale Green,Pro Acryl,Normal,1,#77eeb9
+Burnt Sienna,Pro Acryl,Normal,1,#793119
+Pale Yellow,Pro Acryl,Normal,0,#e4d49c
+Dark Golden Brown,Pro Acryl,Normal,0,#584326
+Faded Plum,Pro Acryl,Normal,0,#926ba0
+Fluorescent Purple,Pro Acryl,Normal|Fluo,0,#d301a2
+Orange Red,Pro Acryl,Normal,1,#de1f03
+Viper Green,Reaper,Normal,1,#008f35
+Nightsky Indigo,Reaper,Normal,0,#3f3861
+Runic Purple,Reaper,Normal,1,#6f3366
+Pale Flesh,Reaper,Normal,1,#fed2b9
+Dragon Blue,Reaper,Normal,0,#0a6cb7
+Sahara Yellow,Scale75,Normal,1,#aa8630
+Adriatic Blue,Scale75,Normal,0,#118a9d
+Black Forest Green,Scale75,Normal,1,#014633
+Royal Blue,Vallejo,Normal,0,#306297
+Bright Orange,Vallejo,Normal,1,#f26633
+Ice Yellow,Vallejo,Normal,0,#f4d390
+English Uniform,Vallejo,Normal,1,#6a5a43
+Magenta,Vallejo,Normal,0,#a91046
+Flat Yellow,Vallejo,Normal,0,#f7b634
+Orange Brown,Vallejo,Normal,0,#b66d42
+Copper,Vallejo,Metallic,1,#915a3c
+Gunmetal Grey,Vallejo,Metallic,0,#313538
+Silver,Vallejo,Metallic,0,#71767c
+Gold,Vallejo,Metallic,1,#8c7448
