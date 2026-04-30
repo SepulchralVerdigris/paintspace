@@ -1,6 +1,8 @@
 # PaintSpace
 A 3D visualisation of the properties of miniatures paints.
 
+[Try it online.](https://sepulchralverdigris.github.io/paintspace/)
+
 Notice: PaintSpace was created with generative AI. 
 
 ## To add your paints
