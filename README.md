@@ -16,7 +16,9 @@ Paint Name | Brand | Hex Code | Set | Type
 
 Normal, Metallic, Air, Wash, Contrast, Technical and Fluo (Fluorescent). You can add other types if you like. Air, Metallic, Wash and Contrast swatches are visually distinct. 
 
-**Hexcode** is the six-character code used for web colours. For example, #000000 is black and #ffffff is white. Citadel paints hexcodes are available [from DakkaDakka](https://www.dakkadakka.com/wiki/en/Paint_Range_Compatibility_Chart). 
+### Hexcode 
+
+The six-character code used for web colours. For example, #000000 is black and #ffffff is white. Citadel paints hexcodes are available [from DakkaDakka](https://www.dakkadakka.com/wiki/en/Paint_Range_Compatibility_Chart). 
 
 You can use the "paint dropper" tool in any image software (Paint, Inkscape, etc) to find the hexcode of a colour. 
 
