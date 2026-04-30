@@ -432,7 +432,8 @@ canvas{display:block;width:100%!important;height:100%!important}
   </div>
   <div class="section-body" id="colours-body">
     <div id="set-filters">
-      <span class="set-toggle on" data-set="owned">Owned</span>
+      <span class="set-toggle on" data-set="owned">■ Owned</span>
+      <span class="set-toggle on" data-set="tester">● Tester</span>
     </div>
     <div id="type-filters">
       <div class="filter-label">Show types</div>
@@ -1142,7 +1143,7 @@ function postLoad(){
 // ── Filter state — must be declared before rebuildBrandFilters is called ──────
 const enabledBrands=new Set();
 const enabledTypes=new Set(['Normal','Metallic','Air','Wash','Contrast','Technical','Fluo']);
-const enabledSets=new Set(['owned']);
+const enabledSets=new Set(['owned','tester']);
 
 function rebuildBrandFilters(){
   const container=document.getElementById('brand-filters');
@@ -1656,7 +1657,7 @@ let matchVisibleSet=null; // Set of indices when match active, else null
 
 // ── Type filter state ──────────────────────────────────
 
-// Set toggle — Owned on/off; testers always shown
+// Set toggles — Owned and Tester
 document.querySelectorAll('.set-toggle').forEach(btn=>{
   btn.addEventListener('click',()=>{
     const s=btn.dataset.set;
