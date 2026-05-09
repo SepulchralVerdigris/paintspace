@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>PaintSpace</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Bebas+Neue&display=swap');
@@ -22,15 +22,15 @@ body{
 }
 body.panel-hidden{grid-template-columns:1fr 0}
 
-/* Panel column wraps scrollable content + sticky footer */
+/* Panel column wraps tab bar + scrollable content + sticky footer */
 #panel-col{
   grid-column:2;grid-row:2;
   display:flex;flex-direction:column;
   overflow:hidden;
-  border-left:2px solid var(--ink);
   background:var(--paper);
   transition:opacity .3s;
   min-height:0;
+  border-left:2px solid var(--ink);
 }
 body.panel-hidden #panel-col{opacity:0;pointer-events:none}
 #panel{
@@ -254,7 +254,7 @@ canvas{display:block;width:100%!important;height:100%!important}
   cursor:crosshair;
 }
 #ref-img-wrap.loaded{display:block}
-#ref-img{display:block;width:100%;height:auto;pointer-events:none;user-select:none}
+#ref-img{display:block;width:100%;height:auto;max-height:calc(var(--panel-w) * 2);object-fit:contain;pointer-events:none;user-select:none}
 #dropper-cursor{
   position:absolute;pointer-events:none;display:none;
   width:24px;height:24px;border-radius:50%;
@@ -343,6 +343,20 @@ canvas{display:block;width:100%!important;height:100%!important}
   cursor:pointer;transition:background .12s,color .12s;text-align:left;
 }
 #clear-btn:hover{background:#fce8e6;color:var(--accent)}
+/* ── Colour Sets ── */
+#coloursets-inner{padding:10px 14px}
+.cs-group{margin-bottom:10px}
+.cs-group-label{
+  font-family:'Courier Prime',monospace;font-size:.68rem;color:var(--muted);
+  margin-bottom:4px;
+}
+.cs-row{
+  display:grid;grid-template-columns:24px 1fr;
+  align-items:center;gap:8px;padding:3px 0;font-size:.72rem;cursor:pointer;
+}
+.cs-row:hover{opacity:.75}
+.cs-row .swatch{width:24px;height:24px;flex-shrink:0}
+
 #github-block{
   padding:12px 14px;border-top:2px solid var(--ink);
   display:flex;align-items:center;justify-content:space-between;gap:10px;
@@ -353,6 +367,22 @@ canvas{display:block;width:100%!important;height:100%!important}
   color:var(--muted);text-decoration:none;
 }
 #github-link:hover{color:var(--ink)}
+/* ── Panel tabs ── */
+#panel-tabs{
+  display:flex;border-bottom:2px solid var(--ink);background:var(--paper);
+  flex-shrink:0;
+}
+.panel-tab{
+  flex:1;padding:9px 4px 7px;text-align:center;cursor:pointer;
+  font-family:'Courier Prime',monospace;font-size:.65rem;line-height:1.3;
+  color:var(--muted);border-bottom:3px solid transparent;
+  margin-bottom:-2px;transition:color .15s,border-color .15s;user-select:none;
+}
+.panel-tab.active{color:var(--ink);border-bottom-color:var(--accent)}
+.panel-tab:hover:not(.active){color:var(--ink)}
+.panel-page{display:none}
+.panel-page.active{display:block}
+
 </style>
 </head>
 <body>
@@ -369,6 +399,7 @@ canvas{display:block;width:100%!important;height:100%!important}
         <option value="sv">Face: Saturation × Value</option>
         <option value="circle_hs">Circle: Hue + Saturation</option>
         <option value="circle_hv">Circle: Hue + Value</option>
+        <option value="ab">Lab: a* × b* (LCh only)</option>
       </select>
       <button id="face-next-btn" class="icon-btn" style="border-left:none;border-radius:0 2px 2px 0;padding:7px 9px" title="Next view">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
@@ -422,122 +453,163 @@ canvas{display:block;width:100%!important;height:100%!important}
 </div>
 
 <div id="panel-col">
+
+  <!-- TAB BAR -->
+  <div id="panel-tabs">
+    <div class="panel-tab active" data-page="page-paints">Paints</div>
+    <div class="panel-tab" data-page="page-match">Colour<br>Match</div>
+    <div class="panel-tab" data-page="page-gap">Gap<br>Analysis</div>
+    <div class="panel-tab" data-page="page-sets">Colour<br>Analysis</div>
+  </div>
+
 <div id="panel">
 
-  <!-- COLOURS section -->
-  <div class="section-header" id="colours-header">
-    <h3>Paints</h3>
-    <span id="count-label" style="font-size:.65rem;color:var(--muted);margin-right:4px">0</span>
-    <svg class="chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3,6 8,11 13,6"/></svg>
-  </div>
-  <div class="section-body" id="colours-body">
-    <div id="set-filters">
-      <span class="set-toggle on" data-set="owned">■ Owned</span>
-      <span class="set-toggle on" data-set="tester">● Tester</span>
-    </div>
-    <div id="type-filters">
-      <div class="filter-label">Show types</div>
-      <span class="type-toggle on" data-type="Normal">Normal</span>
-      <span class="type-toggle on" data-type="Metallic">Metallic</span>
-      <span class="type-toggle on" data-type="Air">Air</span>
-      <span class="type-toggle on" data-type="Wash">Wash</span>
-      <span class="type-toggle on" data-type="Contrast">Contrast</span>
-      <span class="type-toggle on" data-type="Technical">Technical</span>
-      <span class="type-toggle on" data-type="Fluo">Fluo</span>
-    </div>
-    <div id="brand-filters">
-      <div class="filter-label">Show brands</div>
-    </div>
-    <div id="paint-search-wrap">
-      <svg id="paint-search-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" width="12" height="12"><circle cx="6.5" cy="6.5" r="4"/><line x1="10" y1="10" x2="14" y2="14"/></svg>
-      <input id="paint-search" placeholder="Search paints…" autocomplete="off">
-      <span id="paint-search-clear" title="Clear search">×</span>
-    </div>
-    <div id="colour-list"></div>
-    <button id="clear-btn">
-      <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><line x1="2" y1="2" x2="14" y2="14"/><line x1="14" y1="2" x2="2" y2="14"/></svg>
-      Clear palette
-    </button>
-  </div>
+  <!-- PAGE: PAINTS -->
+  <div class="panel-page active" id="page-paints">
 
-  <!-- ADD COLOUR section -->
-  <div class="section-header" id="add-header">
-    <h3>Add Colour</h3>
-    <svg class="chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3,6 8,11 13,6"/></svg>
-  </div>
-  <div class="section-body" id="add-body">
-    <div id="add-section-inner">
-      <div class="add-row">
-        <input id="name-input" placeholder="Name" maxlength="50">
-        <input id="brand-input" placeholder="Brand" maxlength="30">
-      </div>
-      <div class="add-row">
-        <input id="hex-input" placeholder="#rrggbb[aa]" maxlength="9">
-        <button id="add-btn">ADD</button>
-      </div>
-      <div class="set-radio-group">
-        <label class="set-radio-lbl"><input type="checkbox" id="set-owned-check" checked> Owned</label>
-      </div>
-      <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:2px" id="type-check-group">
-        <span class="sec-label" style="flex-basis:100%;margin-bottom:2px">Types</span>
-        <label class="type-chk"><input type="checkbox" value="Normal" checked> Normal</label>
-        <label class="type-chk"><input type="checkbox" value="Metallic"> Metallic</label>
-        <label class="type-chk"><input type="checkbox" value="Air"> Air</label>
-        <label class="type-chk"><input type="checkbox" value="Wash"> Wash</label>
-        <label class="type-chk"><input type="checkbox" value="Contrast"> Contrast</label>
-        <label class="type-chk"><input type="checkbox" value="Technical"> Technical</label>
-        <label class="type-chk"><input type="checkbox" value="Fluo"> Fluo</label>
-      </div>
-    </div>
-  </div>
-
-  <!-- COLOUR MATCH section -->
-  <div id="match-section">
-    <div class="section-header" id="match-header">
-      <h3>Colour Match</h3>
+    <div class="section-header" id="colours-header">
+      <h3>Paints</h3>
+      <span id="count-label" style="font-size:.65rem;color:var(--muted);margin-right:4px">0</span>
       <svg class="chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3,6 8,11 13,6"/></svg>
     </div>
-    <div class="section-body" id="match-body">
-      <div id="match-inner">
-        <div id="match-row">
-          <div id="match-swatch"></div>
-          <input id="match-hex" placeholder="#rrggbb[aa]" maxlength="9">
-          <label class="icon-btn" style="padding:4px 7px;flex-shrink:0;cursor:pointer" title="Load reference image">
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" width="13" height="13"><rect x="1" y="3" width="14" height="10" rx="1.5"/><circle cx="5.5" cy="7.5" r="1.5"/><polyline points="1,12 5,8 8,11 11,8 15,12"/></svg>
-            <input type="file" id="ref-file" accept="image/*" style="display:none">
-          </label>
-          <button id="clear-match-btn" class="icon-btn" style="padding:4px 7px;flex-shrink:0" title="Clear colour match">
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><line x1="2" y1="2" x2="14" y2="14"/><line x1="14" y1="2" x2="2" y2="14"/></svg>
-          </button>
-        </div>
-        <div id="match-by-row">
-          <span class="match-by-btn on" data-by="all">All (ΔE)</span>
-          <span class="match-by-btn" data-by="hue">Hue</span>
-          <span class="match-by-btn" data-by="sat" id="match-by-sat">Chroma</span>
-          <span class="match-by-btn" data-by="val" id="match-by-val">Lightness</span>
-        </div>
-        <div id="ref-img-wrap">
-          <img id="ref-img" alt="Reference">
-          <div id="dropper-cursor"></div>
-        </div>
-        <div id="match-results"></div>
+    <div class="section-body" id="colours-body">
+      <div id="set-filters">
+        <span class="set-toggle on" data-set="owned">&#9632; Owned</span>
+        <span class="set-toggle on" data-set="tester">&#9679; Tester</span>
       </div>
+      <div id="type-filters">
+        <div class="filter-label">Show types</div>
+        <span class="type-toggle on" data-type="Normal">Normal</span>
+        <span class="type-toggle on" data-type="Metallic">Metallic</span>
+        <span class="type-toggle on" data-type="Air">Air</span>
+        <span class="type-toggle on" data-type="Wash">Wash</span>
+        <span class="type-toggle on" data-type="Contrast">Contrast</span>
+        <span class="type-toggle on" data-type="Technical">Technical</span>
+        <span class="type-toggle on" data-type="Fluo">Fluo</span>
+      </div>
+      <div id="brand-filters">
+        <div class="filter-label">Show brands</div>
+      </div>
+      <div id="paint-search-wrap">
+        <svg id="paint-search-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" width="12" height="12"><circle cx="6.5" cy="6.5" r="4"/><line x1="10" y1="10" x2="14" y2="14"/></svg>
+        <input id="paint-search" placeholder="Search paints…" autocomplete="off">
+        <span id="paint-search-clear" title="Clear search">×</span>
+      </div>
+      <div id="colour-list"></div>
+      <button id="clear-btn">
+        <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><line x1="2" y1="2" x2="14" y2="14"/><line x1="14" y1="2" x2="2" y2="14"/></svg>
+        Clear palette
+      </button>
+    </div>
+
+    <div class="section-header" id="add-header">
+      <h3>Add Colour</h3>
+      <svg class="chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3,6 8,11 13,6"/></svg>
+    </div>
+    <div class="section-body" id="add-body">
+      <div id="add-section-inner">
+        <div class="add-row">
+          <input id="name-input" placeholder="Name" maxlength="50">
+          <input id="brand-input" placeholder="Brand" maxlength="30">
+        </div>
+        <div class="add-row">
+          <input id="hex-input" placeholder="#rrggbb[aa]" maxlength="9">
+          <button id="add-btn">ADD</button>
+        </div>
+        <div class="set-radio-group">
+          <label class="set-radio-lbl"><input type="checkbox" id="set-owned-check" checked> Owned</label>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:2px" id="type-check-group">
+          <span class="sec-label" style="flex-basis:100%;margin-bottom:2px">Types</span>
+          <label class="type-chk"><input type="checkbox" value="Normal" checked> Normal</label>
+          <label class="type-chk"><input type="checkbox" value="Metallic"> Metallic</label>
+          <label class="type-chk"><input type="checkbox" value="Air"> Air</label>
+          <label class="type-chk"><input type="checkbox" value="Wash"> Wash</label>
+          <label class="type-chk"><input type="checkbox" value="Contrast"> Contrast</label>
+          <label class="type-chk"><input type="checkbox" value="Technical"> Technical</label>
+          <label class="type-chk"><input type="checkbox" value="Fluo"> Fluo</label>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- PAGE: COLOUR MATCH -->
+  <div class="panel-page" id="page-match">
+    <div id="match-inner">
+      <div id="match-row">
+        <div id="match-swatch"></div>
+        <input id="match-hex" placeholder="#rrggbb[aa]" maxlength="9">
+        <label class="icon-btn" style="padding:4px 7px;flex-shrink:0;cursor:pointer" title="Load reference image">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" width="13" height="13"><rect x="1" y="3" width="14" height="10" rx="1.5"/><circle cx="5.5" cy="7.5" r="1.5"/><polyline points="1,12 5,8 8,11 11,8 15,12"/></svg>
+          <input type="file" id="ref-file" accept="image/*" style="display:none">
+        </label>
+        <button id="clear-match-btn" class="icon-btn" style="padding:4px 7px;flex-shrink:0" title="Clear colour match">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><line x1="2" y1="2" x2="14" y2="14"/><line x1="14" y1="2" x2="2" y2="14"/></svg>
+        </button>
+      </div>
+      <div id="match-by-row">
+        <span class="match-by-btn on" data-by="all">All (ΔE)</span>
+        <span class="match-by-btn" data-by="hue">Hue</span>
+        <span class="match-by-btn" data-by="sat" id="match-by-sat">Chroma</span>
+        <span class="match-by-btn" data-by="val" id="match-by-val">Lightness</span>
+      </div>
+      <div id="ref-img-wrap">
+        <img id="ref-img" alt="Reference">
+        <div id="dropper-cursor"></div>
+      </div>
+      <div id="match-results"></div>
     </div>
   </div>
 
-  <!-- GAP ANALYSIS section -->
-  <div id="gap-section" style="display:none">
-    <div class="section-header" id="gap-header">
-      <h3>Gap Analysis</h3>
-      <svg class="chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3,6 8,11 13,6"/></svg>
+  <!-- PAGE: GAP ANALYSIS -->
+  <div class="panel-page" id="page-gap">
+    <div id="gap-inner">
+      <p style="font-size:.72rem;color:var(--muted);padding:10px 14px 4px;line-height:1.5">
+        Tester paints furthest from any Owned paint.
+      </p>
+      <div id="gap-results"></div>
+      <div id="gap-pagination"></div>
     </div>
-    <div class="section-body" id="gap-body">
-      <div id="gap-inner">
-        <p id="gap-desc" style="font-size:.65rem;color:var(--muted);padding:0 0 8px;line-height:1.5">
-          Tester paints furthest from any Owned paint.
-        </p>
-        <div id="gap-results"></div>
-        <div id="gap-pagination"></div>
+  </div>
+
+  <!-- PAGE: COLOUR ANALYSIS -->
+  <div class="panel-page" id="page-sets">
+    <div id="coloursets-inner">
+      <div style="padding:10px 14px 0">
+        <button id="cs-show-btn" class="icon-btn" style="width:100%;margin-bottom:10px;justify-content:center">
+          Show on cube
+        </button>
+        <div id="coloursets-selected" style="display:flex;align-items:flex-start;gap:8px;padding:0 0 8px;font-size:.75rem">
+          <div id="cs-swatch" style="width:28px;height:28px;border-radius:3px;flex-shrink:0;margin-top:2px"></div>
+          <div id="cs-name" style="color:var(--muted);font-size:.72rem;line-height:1.5">Select a paint to analyse</div>
+        </div>
+      </div>
+      <div id="cs-groups" style="padding:0 14px 14px">
+        <div class="cs-group">
+          <div class="cs-group-label">Nearest 5</div>
+          <div id="cs-nearest"></div>
+        </div>
+        <div class="cs-group">
+          <div class="cs-group-label">Nearest 5 contrasting</div>
+          <div id="cs-contrast"></div>
+        </div>
+        <div class="cs-group">
+          <div class="cs-group-label">Triad — clockwise (+120°)</div>
+          <div id="cs-triad-cw"></div>
+        </div>
+        <div class="cs-group">
+          <div class="cs-group-label">Triad — counter-clockwise (+240°)</div>
+          <div id="cs-triad-ccw"></div>
+        </div>
+        <div class="cs-group">
+          <div class="cs-group-label">Similar hue, lighter (±20°, L+9)</div>
+          <div id="cs-tone-light"></div>
+        </div>
+        <div class="cs-group">
+          <div class="cs-group-label">Similar hue, darker (±20°, L−9)</div>
+          <div id="cs-tone-dark"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -557,6 +629,7 @@ canvas{display:block;width:100%!important;height:100%!important}
     </a>
   </div>
 
+</div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
@@ -754,6 +827,7 @@ const FACE_FN_LCH={
   'sv':        (h,C,L)=>({x:C*2-1,  y:L*2-1,  z:h*2-1}),
   'circle_hs': (h,C,L)=>{const a=h*Math.PI*2;return{x:Math.cos(a)*C, y:Math.sin(a)*C, z:L*2-1};},
   'circle_hv': (h,C,L)=>{const a=h*Math.PI*2;return{x:Math.cos(a)*L, y:Math.sin(a)*L, z:C*2-1};},
+  'ab':        (h,C,L)=>({x:0, y:0, z:0}), // overridden in getPos
 };
 const FACE_FN_HSV={
   '3d':        (h,s,v)=>({x:h*2-1,  y:s*2-1,  z:v*2-1}),
@@ -763,7 +837,12 @@ const FACE_FN_HSV={
   'circle_hs': (h,s,v)=>{const a=h*Math.PI*2;return{x:Math.cos(a)*s, y:Math.sin(a)*s, z:v*2-1};},
   'circle_hv': (h,s,v)=>{const a=h*Math.PI*2;return{x:Math.cos(a)*v, y:Math.sin(a)*v, z:s*2-1};},
 };
-function FACE_FN(face){return colourMode==='lch'?FACE_FN_LCH[face]:FACE_FN_HSV[face];}
+function FACE_FN(face){
+  if(face==='ab') return FACE_FN_LCH['hs'];
+  const fn=(colourMode==='lch'?FACE_FN_LCH:FACE_FN_HSV)[face];
+  if(!fn) return (h,s,v)=>({x:h*2-1,y:s*2-1,z:v*2-1});
+  return fn;
+}
 
 const FACE_LABELS_LCH={
   '3d':        {x:'HUE',    y:'CHROMA',    z:'LIGHTNESS'},
@@ -772,6 +851,7 @@ const FACE_LABELS_LCH={
   'sv':        {x:'CHROMA', y:'LIGHTNESS', z:'HUE'},
   'circle_hs': {x:'',       y:'',          z:'LIGHTNESS'},
   'circle_hv': {x:'',       y:'',          z:'CHROMA'},
+  'ab':        {x:'a*',     y:'b*',        z:'LIGHTNESS'},
 };
 const FACE_LABELS_HSV={
   '3d':        {x:'HUE',        y:'SATURATION', z:'VALUE'},
@@ -781,7 +861,11 @@ const FACE_LABELS_HSV={
   'circle_hs': {x:'',           y:'',            z:'VALUE'},
   'circle_hv': {x:'',           y:'',            z:'SATURATION'},
 };
-function FACE_LABELS(face){return colourMode==='lch'?FACE_LABELS_LCH[face]:FACE_LABELS_HSV[face];}
+function FACE_LABELS(face){
+  if(face==='ab') return FACE_LABELS_LCH['ab'];
+  const map=colourMode==='lch'?FACE_LABELS_LCH:FACE_LABELS_HSV;
+  return map[face]||{x:'HUE',y:'SATURATION',z:'VALUE'};
+}
 
 const FACE_CAM={
   '3d':        null,
@@ -790,12 +874,15 @@ const FACE_CAM={
   'sv':        {theta:0, phi:Math.PI/2, r:4.5},
   'circle_hs': {theta:0, phi:Math.PI/2, r:4.5},
   'circle_hv': {theta:0, phi:Math.PI/2, r:4.5},
+  'ab':        {theta:0, phi:Math.PI/2, r:4.5},
 };
 
 const COMP_COLOURS_LCH={
   'HUE':       0x9944cc,
   'CHROMA':    0xcc3333,
   'LIGHTNESS': 0xcccccc,
+  'a*':        0xdd4444,
+  'b*':        0x4488dd,
 };
 const COMP_COLOURS_HSV={
   'HUE':        0x9944cc,
@@ -808,6 +895,8 @@ const AXIS_COLOURS_LCH={
   'HUE':       'rgba(180,100,220,.8)',
   'CHROMA':    'rgba(220,80,80,.8)',
   'LIGHTNESS': 'rgba(240,240,240,.7)',
+  'a*':        'rgba(220,80,80,.8)',
+  'b*':        'rgba(80,150,220,.8)',
 };
 const AXIS_COLOURS_HSV={
   'HUE':        'rgba(180,100,220,.8)',
@@ -877,6 +966,13 @@ function updateAxesForFace(){
   const L=FACE_LABELS(currentFace);
   const is3d=currentFace==='3d';
   const isCircle=CIRCLE_VIEWS.has(currentFace);
+  if(currentFace==='ab'){
+    // Show X=a* (red) and Y=b* (blue) axes, hide Z
+    axisX.material.color.setHex(COMP_COLOURS('a*')||0xdd4444);
+    axisY.material.color.setHex(COMP_COLOURS('b*')||0x4488dd);
+    axisX.visible=true; axisY.visible=true; axisZ.visible=false;
+    return;
+  }
   if(isCircle){
     axisX.visible=false; axisY.visible=false; axisZ.visible=false;
     return;
@@ -996,17 +1092,79 @@ function makeSwatchTexture(hex,types){
   return new THREE.CanvasTexture(cv);
 }
 
+// Returns a CSS background-image data URL for panel swatches
+function makeSwatchCSS(hex,types,isCircle){
+  // Re-run same canvas logic but return data URL
+  const sz=64;
+  const cv=document.createElement('canvas');
+  cv.width=cv.height=sz;
+  const ctx=cv.getContext('2d');
+  const[r,g,b]=hexToRgbArr(hex);
+  const col=`rgb(${r},${g},${b})`;
+  const colA=(a)=>`rgba(${r},${g},${b},${a})`;
+
+  if(isCircle){
+    // Clip to circle for tester swatches
+    ctx.beginPath();
+    ctx.arc(sz/2,sz/2,sz/2,0,Math.PI*2);
+    ctx.clip();
+  }
+
+  if(types.includes('Metallic')){
+    ctx.fillStyle=col; ctx.fillRect(0,0,sz,sz);
+    const shine=ctx.createLinearGradient(0,sz,sz,0);
+    shine.addColorStop(0,'rgba(0,0,0,0.35)');
+    shine.addColorStop(0.4,'rgba(0,0,0,0.05)');
+    shine.addColorStop(0.6,'rgba(255,255,255,0.0)');
+    shine.addColorStop(0.78,'rgba(255,255,255,0.55)');
+    shine.addColorStop(0.88,'rgba(255,255,255,0.9)');
+    shine.addColorStop(1,'rgba(255,255,255,0.3)');
+    ctx.fillStyle=shine; ctx.fillRect(0,0,sz,sz);
+    const sp=ctx.createRadialGradient(sz*.68,sz*.28,0,sz*.68,sz*.28,sz*.22);
+    sp.addColorStop(0,'rgba(255,255,255,0.75)');
+    sp.addColorStop(1,'rgba(255,255,255,0)');
+    ctx.fillStyle=sp; ctx.fillRect(0,0,sz,sz);
+  } else if(types.includes('Air')){
+    const grad=ctx.createRadialGradient(sz/2,sz/2,0,sz/2,sz/2,sz*0.7);
+    grad.addColorStop(0,colA(1));
+    grad.addColorStop(0.5,colA(1));
+    grad.addColorStop(0.82,colA(0.6));
+    grad.addColorStop(1,colA(0));
+    ctx.fillStyle=grad; ctx.fillRect(0,0,sz,sz);
+  } else if(types.includes('Wash')||types.includes('Contrast')){
+    const half=sz/2;
+    const lr=Math.min(255,Math.round(r+(255-r)*0.45));
+    const lg=Math.min(255,Math.round(g+(255-g)*0.45));
+    const lb=Math.min(255,Math.round(b+(255-b)*0.45));
+    const dr2=Math.round(r*0.45),dg2=Math.round(g*0.45),db2=Math.round(b*0.45);
+    ctx.fillStyle=col; ctx.fillRect(0,0,half,half);
+    ctx.fillStyle=`rgb(${lr},${lg},${lb})`; ctx.fillRect(half,0,half,half);
+    ctx.fillStyle=`rgb(${dr2},${dg2},${db2})`; ctx.fillRect(0,half,half,half);
+    ctx.fillStyle=col; ctx.fillRect(half,half,half,half);
+  } else {
+    ctx.fillStyle=col; ctx.fillRect(0,0,sz,sz);
+  }
+  return `url(${cv.toDataURL()})`;
+}
+
 // ── Points — square (owned) or circle (tester) swatches, always facing camera ─
 const sGeo=new THREE.PlaneGeometry(0.13,0.13);
 const cGeo=new THREE.CircleGeometry(0.075,32); // circle for tester
 const outlineGeo=new THREE.PlaneGeometry(0.175,0.175);
 const outlineCircleGeo=new THREE.CircleGeometry(0.105,32);
-const outlineMat=new THREE.MeshBasicMaterial({color:0xffffff,side:THREE.DoubleSide});
 const pointMeshes=[];
 const outlineMeshes=[];
 let colours=[];
 
+// a* and b* range roughly -128..+127; normalise to -1..1 using 128
+const AB_MAX=128;
+
 function getPos(entry){
+  if(currentFace==='ab'){
+    // Use raw Lab a* and b*, L on Z — only meaningful in LCh mode
+    const lab=hexToLab(entry.hex);
+    return new THREE.Vector3(lab.a/AB_MAX, lab.b/AB_MAX, lab.L/100*2-1);
+  }
   const c=getComponents(entry);
   const{x,y,z}=FACE_FN(currentFace)(c.x,c.y,c.z);
   return new THREE.Vector3(x,y,z);
@@ -1025,7 +1183,10 @@ function addColour(entry){
   // Outline (white, behind)
   const outline=new THREE.Mesh(
     isTester?outlineCircleGeo:outlineGeo,
-    outlineMat.clone()
+    new THREE.MeshBasicMaterial({
+      color:0xffffff, side:THREE.DoubleSide,
+      polygonOffset:true, polygonOffsetFactor:1, polygonOffsetUnits:1,
+    })
   );
   outline.position.copy(pos);
   outline.renderOrder=0;
@@ -1175,10 +1336,17 @@ function rebuildPositions(){
   });
   // Immediately reposition target marker if match is active
   if(currentMatchHex&&targetMarker.visible){
-    const tc=getComponents(currentMatchHex);
-    const{x,y,z}=FACE_FN(currentFace)(tc.x,tc.y,tc.z);
-    targetMarker.userData._target=new THREE.Vector3(x,y,z);
-    targetOutline.userData._target=new THREE.Vector3(x,y,z);
+    let tx,ty,tz;
+    if(currentFace==='ab'){
+      const lab=hexToLab(currentMatchHex);
+      tx=lab.a/AB_MAX; ty=lab.b/AB_MAX; tz=lab.L/100*2-1;
+    } else {
+      const tc=getComponents(currentMatchHex);
+      const p=FACE_FN(currentFace)(tc.x,tc.y,tc.z);
+      tx=p.x;ty=p.y;tz=p.z;
+    }
+    targetMarker.userData._target=new THREE.Vector3(tx,ty,tz);
+    targetOutline.userData._target=new THREE.Vector3(tx,ty,tz);
   }
 }
 
@@ -1216,14 +1384,56 @@ wrap.addEventListener('wheel',e=>{
 },{passive:false});
 
 let lastTouch=null;
-wrap.addEventListener('touchstart',e=>{if(e.touches.length===1)lastTouch=e.touches[0];},{passive:true});
+let lastPinchDist=null;
+let touchMode='none'; // 'drag' | 'pinch'
+
+wrap.addEventListener('touchstart',e=>{
+  e.preventDefault();
+  if(e.touches.length===1){
+    touchMode='drag';
+    lastTouch=e.touches[0];
+    lastPinchDist=null;
+  } else if(e.touches.length===2){
+    touchMode='pinch';
+    lastTouch=null;
+    const dx=e.touches[0].clientX-e.touches[1].clientX;
+    const dy=e.touches[0].clientY-e.touches[1].clientY;
+    lastPinchDist=Math.sqrt(dx*dx+dy*dy);
+  }
+},{passive:false});
+
 wrap.addEventListener('touchmove',e=>{
-  if(e.touches.length!==1||!lastTouch)return;
-  theta-=(e.touches[0].clientX-lastTouch.clientX)*0.01;
-  phi=Math.max(0.05,Math.min(Math.PI-0.05,phi+(e.touches[0].clientY-lastTouch.clientY)*0.01));
-  lastTouch=e.touches[0];
-  updateCamera();
-},{passive:true});
+  e.preventDefault();
+  if(touchMode==='drag'&&e.touches.length===1&&lastTouch){
+    theta-=(e.touches[0].clientX-lastTouch.clientX)*0.01;
+    phi=Math.max(0.05,Math.min(Math.PI-0.05,phi+(e.touches[0].clientY-lastTouch.clientY)*0.01));
+    lastTouch=e.touches[0];
+    updateCamera();
+  } else if(touchMode==='pinch'&&e.touches.length===2){
+    const dx=e.touches[0].clientX-e.touches[1].clientX;
+    const dy=e.touches[0].clientY-e.touches[1].clientY;
+    const dist=Math.sqrt(dx*dx+dy*dy);
+    if(lastPinchDist){
+      radius=Math.max(2.5,Math.min(10,radius*(lastPinchDist/dist)));
+      updateCamera();
+    }
+    lastPinchDist=dist;
+  }
+},{passive:false});
+
+wrap.addEventListener('touchend',e=>{
+  e.preventDefault();
+  if(e.touches.length===0){
+    touchMode='none';
+    lastTouch=null;
+    lastPinchDist=null;
+  } else if(e.touches.length===1){
+    // Dropped from pinch to single finger — reset to drag without spinning
+    touchMode='drag';
+    lastTouch=e.touches[0];
+    lastPinchDist=null;
+  }
+},{passive:false});
 
 // ═══════════════════════════════════
 // RAYCASTING
@@ -1317,9 +1527,12 @@ function renderList(){
     div.dataset.index=i;
     const typeArr=Array.isArray(c.type)?c.type:[c.type||'Normal'];
     const tags=typeArr.map(t=>`<span class="type-tag">${t}</span>`).join('');
+    const isTesterItem=c.set==='tester';
+    const swatchBg=makeSwatchCSS(c.hex,typeArr,isTesterItem);
+    const swatchRadius=isTesterItem?'50%':'3px';
     const setDot=`<span class="set-dot ${c.set||'owned'}" style="background:${c.hex}"></span>`;
     div.innerHTML=
-      `<div class="swatch" style="background:${c.hex};border-radius:${c.set==='tester'?'50%':'3px'}"></div>`+
+      `<div class="swatch" style="background-image:${swatchBg};background-size:cover;border-radius:${swatchRadius}"></div>`+
       `<div class="colour-meta">`+
         `<div class="colour-name">${c.name}</div>`+
         `<div class="colour-brand"><span>${c.brand||''}</span>${tags}</div>`+
@@ -1333,6 +1546,13 @@ function renderList(){
 
 function highlightItem(i){
   if(activeIndex>=0&&outlineMeshes[activeIndex]) outlineMeshes[activeIndex].visible=false;
+  // Reset show-on-cube if active
+  if(colourSetShowActive){
+    colourSetShowActive=false;
+    colourSetVisibleSet=null;
+    const btn=document.getElementById('cs-show-btn');
+    if(btn) btn.textContent='Show on cube';
+  }
   activeIndex=i;
   if(outlineMeshes[i]) outlineMeshes[i].visible=true;
   renderList();
@@ -1348,7 +1568,245 @@ function highlightItem(i){
     else mesh.scale.setScalar(1);
   };
   pulse();
+  computeColourSets(i);
+  // Switch to Colour Analysis tab
+  document.querySelectorAll('.panel-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.panel-page').forEach(p=>p.classList.remove('active'));
+  document.querySelector('[data-page="page-sets"]').classList.add('active');
+  document.getElementById('page-sets').classList.add('active');
 }
+
+// ═══════════════════════════════════
+// COLOUR SETS
+// ═══════════════════════════════════
+let colourSetVisibleSet=null; // Set of indices when "Show on cube" active
+
+function passesFilters(c){
+  const types=Array.isArray(c.type)?c.type:[c.type||'Normal'];
+  return types.every(t=>enabledTypes.has(t))
+    && enabledSets.has(c.set||'owned')
+    && (!c.brand||enabledBrands.has(c.brand));
+}
+
+// Shift hue by degrees in LCh (circular 0–360)
+function shiftHue(hex, deg){
+  const lch=hexToLch(hex);
+  const newH=((lch.L===0||lch.L===100)?lch.h:(lch.h*360+deg+360)%360)/360;
+  // Return a synthetic target colour at the shifted hue, same C and L
+  const a=lch.C*Math.cos(newH*Math.PI*2);
+  const b=lch.C*Math.sin(newH*Math.PI*2);
+  return {L:lch.L, a, b}; // fake Lab target
+}
+
+function labDistToTarget(hex, labTarget){
+  const lab=hexToLab(hex);
+  return Math.sqrt(
+    (lab.L-labTarget.L)**2+(lab.a-labTarget.a)**2+(lab.b-labTarget.b)**2
+  );
+}
+
+function getNearestToLab(labTarget, n, excludeIdx){
+  return colours
+    .map((c,i)=>({i,c,dist:labDistToTarget(c.hex,labTarget)}))
+    .filter(({i,c})=>i!==excludeIdx&&passesFilters(c))
+    .sort((a,b)=>a.dist-b.dist)
+    .slice(0,n);
+}
+
+function renderColourSetGroup(containerId, items){
+  const el=document.getElementById(containerId);
+  el.innerHTML='';
+  if(!items.length){
+    el.innerHTML='<p style="font-size:.68rem;color:var(--muted);padding:3px 0">None found in current set</p>';
+    return;
+  }
+  items.forEach(({i,c})=>{
+    const typeArr=Array.isArray(c.type)?c.type:[c.type||'Normal'];
+    const isTester=c.set==='tester';
+    const bg=makeSwatchCSS(c.hex,typeArr,isTester);
+    const radius=isTester?'50%':'3px';
+    const div=document.createElement('div');
+    div.className='cs-row';
+    div.innerHTML=
+      `<div class="swatch" style="background-image:${bg};background-size:cover;border-radius:${radius}"></div>`+
+      `<span>${c.name} <span style="color:var(--muted);font-size:.65rem">${c.brand||''}</span></span>`;
+    div.addEventListener('click',()=>highlightItem(i));
+    el.appendChild(div);
+  });
+}
+
+let csIndices=[]; // all indices in current colour set (for show-on-cube)
+
+function computeColourSets(idx){
+  if(idx<0||!colours[idx]) return;
+
+  const c=colours[idx];
+
+  // Update selected paint display
+  const typeArr=Array.isArray(c.type)?c.type:[c.type||'Normal'];
+  document.getElementById('cs-swatch').style.cssText=
+    `width:28px;height:28px;border-radius:${c.set==='tester'?'50%':'3px'};`+
+    `background-image:${makeSwatchCSS(c.hex,typeArr,c.set==='tester')};background-size:cover;flex-shrink:0`;
+
+  const setLabel=c.set==='tester'?'● Tester':'■ Owned';
+
+  // Build inline value swatch (monochrome box at same V or L)
+  function valueSwatch(level01){
+    const g=Math.round(level01*255);
+    return `<span style="display:inline-block;width:16px;height:12px;border-radius:2px;`+
+      `background:rgb(${g},${g},${g});border:1px solid rgba(0,0,0,.15);`+
+      `vertical-align:middle;margin:0 3px"></span>`;
+  }
+
+  // Build inline chroma/sat bar
+  // maxColour: most saturated version of the hue
+  function chromaBar(pct, maxHex){
+    const w=Math.max(2,Math.round(pct*80)); // max 80px bar
+    return `<span style="display:inline-flex;align-items:center;vertical-align:middle;`+
+      `margin:0 3px;gap:0;border:1px solid rgba(0,0,0,.15);border-radius:2px;overflow:hidden;width:80px;height:12px">`+
+      `<span style="display:block;width:${w}px;height:100%;background:${maxHex}"></span>`+
+      `<span style="display:block;flex:1;height:100%;background:var(--paper)"></span>`+
+      `</span>`;
+  }
+
+  let valueLine, chromaLine;
+  if(colourMode==='lch'){
+    const L=c.lch.L*100, Ch=c.lch.C, H=c.lch.h; // L in raw Lab units 0-100
+    const angle=H*Math.PI*2;
+
+    function labToRgb255(L2,a2,b2){
+      const fy=(L2+16)/116,fx=a2/500+fy,fz=fy-b2/200;
+      const f3=(t)=>t>0.206897?t*t*t:0.12842*(t-4/29);
+      const [x,y,z]=[f3(fx)*0.95047,f3(fy)*1.00000,f3(fz)*1.08883];
+      const rl=x*3.2404542-y*1.5371385-z*0.4985314;
+      const gl=-x*0.9692660+y*1.8760108+z*0.0415560;
+      const bl=x*0.0556434-y*0.2040259+z*1.0572252;
+      const gam=(t)=>t<=0.0031308?12.92*t:1.055*Math.pow(Math.max(0,t),1/2.4)-0.055;
+      return[gam(rl)*255,gam(gl)*255,gam(bl)*255];
+    }
+    function inGamut(L2,a2,b2){
+      const [r,g,b]=labToRgb255(L2,a2,b2);
+      return r>=-0.5&&r<=255.5&&g>=-0.5&&g<=255.5&&b>=-0.5&&b<=255.5;
+    }
+    // Binary search max in-gamut chroma at display lightness (L=60 for visibility)
+    // and at actual lightness (for proportion)
+    const displayL=60;
+    function maxChromaAtL(Lval){
+      let lo=0, hi=C_MAX*1.5;
+      for(let i=0;i<18;i++){
+        const mid=(lo+hi)/2;
+        inGamut(Lval,mid*Math.cos(angle),mid*Math.sin(angle))?lo=mid:hi=mid;
+      }
+      return lo;
+    }
+    const maxC=maxChromaAtL(L);          // for proportion
+    const maxCdisp=maxChromaAtL(displayL); // for bar colour
+    const [mr,mg,mb]=labToRgb255(displayL,maxCdisp*Math.cos(angle),maxCdisp*Math.sin(angle));
+    const maxChromaCol=`rgb(${Math.round(Math.max(0,Math.min(255,mr)))},${Math.round(Math.max(0,Math.min(255,mg)))},${Math.round(Math.max(0,Math.min(255,mb)))})`;
+
+    const actualC=Ch*C_MAX;
+    valueLine=`L <b>${Math.round(L)}</b>${valueSwatch(L/100)}`;
+    chromaLine=`C <b>${Math.round(actualC)}</b>${chromaBar(maxC>0?Math.min(1,actualC/maxC):0, maxChromaCol)} `+
+      `H <b>${Math.round(H*360)}°</b>`;
+  } else {
+    const {h,s,v}=c.hsv;
+    // Max saturation: same hue and value, s=1
+    function hsvToRgbStr(h2,s2,v2){
+      const i=Math.floor(h2*6),f=h2*6-i,p=v2*(1-s2),q=v2*(1-f*s2),t2=v2*(1-(1-f)*s2);
+      let r,g,b;
+      switch(i%6){case 0:r=v2;g=t2;b=p;break;case 1:r=q;g=v2;b=p;break;
+        case 2:r=p;g=v2;b=t2;break;case 3:r=p;g=q;b=v2;break;
+        case 4:r=t2;g=p;b=v2;break;default:r=v2;g=p;b=q;}
+      return `rgb(${Math.round(r*255)},${Math.round(g*255)},${Math.round(b*255)})`;
+    }
+    const maxSatCol=hsvToRgbStr(h,1,v);
+    valueLine=`V <b>${Math.round(v*100)}</b>${valueSwatch(v)}`;
+    chromaLine=`S <b>${Math.round(s*100)}</b>${chromaBar(s,maxSatCol)} `+
+      `H <b>${Math.round(h*360)}°</b>`;
+  }
+
+  document.getElementById('cs-name').innerHTML=
+    `<div style="font-weight:700;font-size:.82rem;color:var(--ink)">${c.name}</div>`+
+    `<div style="font-size:.72rem;color:var(--ink)">${c.brand||''} &middot; ${typeArr.join(', ')} &middot; ${setLabel}</div>`+
+    `<div style="font-size:.72rem;color:var(--ink);margin-top:3px">${chromaLine}</div>`+
+    `<div style="font-size:.72rem;color:var(--ink)">${valueLine} &nbsp; <span style="font-family:monospace">${c.hex}</span></div>`;
+
+  const srcLab=hexToLab(c.hex);
+
+  // 1. Nearest 5 (by ΔE, excluding self)
+  const nearest=getNearestToLab(srcLab,5,idx);
+
+  // 2. Nearest 5 contrasting (complement = hue + 180°)
+  const compTarget=shiftHue(c.hex,180);
+  const contrast=getNearestToLab(compTarget,5,idx);
+
+  // 3. Triad CW — hue + 120°
+  const triadCWTarget=shiftHue(c.hex,120);
+  const triadCW=getNearestToLab(triadCWTarget,2,idx);
+
+  // 4. Triad CCW — hue + 240°
+  const triadCCWTarget=shiftHue(c.hex,240);
+  const triadCCW=getNearestToLab(triadCCWTarget,2,idx);
+
+  renderColourSetGroup('cs-nearest',nearest);
+  renderColourSetGroup('cs-contrast',contrast);
+  renderColourSetGroup('cs-triad-cw',triadCW);
+  renderColourSetGroup('cs-triad-ccw',triadCCW);
+
+  // Similar hue (within ±20°), significantly lighter or darker (ΔL ≥ 9)
+  const srcLch=hexToLch(c.hex);
+  const srcH=srcLch.h*360;
+  const srcL=srcLch.L;
+
+  function hueDiff(h1,h2){
+    const d=Math.abs(h1-h2)%360;
+    return d>180?360-d:d;
+  }
+
+  const toneBase=colours
+    .map((_,i)=>({i}))
+    .filter(({i})=>i!==idx&&passesFilters(colours[i]))
+    .filter(({i})=>{
+      const lch2=hexToLch(colours[i].hex);
+      return hueDiff(lch2.h*360,srcH)<=20
+        && Math.abs(lch2.C-srcLch.C)<=35;
+    });
+
+  const toneLighter=toneBase
+    .filter(({i})=>hexToLch(colours[i].hex).L>=srcL+9)
+    .sort((a,b)=>hexToLch(colours[a.i].hex).L-hexToLch(colours[b.i].hex).L)
+    .slice(0,5)
+    .map(({i})=>({i,c:colours[i]}));
+
+  const toneDarker=toneBase
+    .filter(({i})=>hexToLch(colours[i].hex).L<=srcL-9)
+    .sort((a,b)=>hexToLch(colours[b.i].hex).L-hexToLch(colours[a.i].hex).L)
+    .slice(0,5)
+    .map(({i})=>({i,c:colours[i]}));
+
+  renderColourSetGroup('cs-tone-light',toneLighter);
+  renderColourSetGroup('cs-tone-dark',toneDarker);
+
+  // Collect all indices for show-on-cube
+  csIndices=[idx,
+    ...nearest.map(r=>r.i),
+    ...contrast.map(r=>r.i),
+    ...triadCW.map(r=>r.i),
+    ...triadCCW.map(r=>r.i),
+    ...toneLighter.map(r=>r.i),
+    ...toneDarker.map(r=>r.i),
+  ];
+}
+
+// Show on cube button
+let colourSetShowActive=false;
+document.getElementById('cs-show-btn').addEventListener('click',()=>{
+  colourSetShowActive=!colourSetShowActive;
+  colourSetVisibleSet=colourSetShowActive?new Set(csIndices):null;
+  document.getElementById('cs-show-btn').textContent=
+    colourSetShowActive?'Show all':'Show on cube';
+  applyVisibility();
+});
 
 // ═══════════════════════════════════
 // AXIS OVERLAY LABELS
@@ -1369,7 +1827,40 @@ function updateAxisLabels(){
   const is3d=currentFace==='3d';
   const isCircle=CIRCLE_VIEWS.has(currentFace);
 
+  if(currentFace==='ab'){
+    [
+      {pos:new THREE.Vector3(1.45,0,0),  label:'a* (+red)',   color:AXIS_COLOURS('a*')},
+      {pos:new THREE.Vector3(-1.45,0,0), label:'a* (−green)', color:AXIS_COLOURS('a*')},
+      {pos:new THREE.Vector3(0,1.45,0),  label:'b* (+yellow)',color:AXIS_COLOURS('b*')},
+      {pos:new THREE.Vector3(0,-1.45,0), label:'b* (−blue)',  color:AXIS_COLOURS('b*')},
+    ].forEach(({pos,label,color})=>{
+      if(pos.clone().project(camera).z>1) return;
+      const s=project(pos);
+      const el=document.createElement('div');
+      el.className='ax-label'; el.textContent=label; el.style.color=color;
+      el.style.left=s.x+'px'; el.style.top=s.y+'px';
+      axisOverlay.appendChild(el);
+    });
+    return;
+  }
+
   if(isCircle){
+    if(currentFace==='ab'){
+      [
+        {pos:new THREE.Vector3(1.45,0,0),  label:'a* (+red)',   color:AXIS_COLOURS('a*')},
+        {pos:new THREE.Vector3(-1.45,0,0), label:'a* (−green)', color:AXIS_COLOURS('a*')},
+        {pos:new THREE.Vector3(0,1.45,0),  label:'b* (+yellow)',color:AXIS_COLOURS('b*')},
+        {pos:new THREE.Vector3(0,-1.45,0), label:'b* (−blue)',  color:AXIS_COLOURS('b*')},
+      ].forEach(({pos,label,color})=>{
+        if(pos.clone().project(camera).z>1) return;
+        const s=project(pos);
+        const el=document.createElement('div');
+        el.className='ax-label'; el.textContent=label; el.style.color=color;
+        el.style.left=s.x+'px'; el.style.top=s.y+'px';
+        axisOverlay.appendChild(el);
+      });
+      return;
+    }
     // Representative hex for each hue name — derive actual angle from current mode
     const hueLabels=[
       {name:'RED',     hex:'#ff0000', color:'#ff4444'},
@@ -1434,7 +1925,7 @@ const flipBtn=document.getElementById('face-flip-btn');
 function applyFaceChange(){
   currentFace=faceSelect.value;
   const isCircle=CIRCLE_VIEWS.has(currentFace);
-  const isFace=currentFace!=='3d'&&!isCircle;
+  const isFace=currentFace!=='3d'&&!isCircle&&currentFace!=='ab';
   circleGuides.visible=isCircle;
   cubeGuides.forEach(o=>{ if(o.visible!==undefined) o.visible=!isCircle; });
   flipBtn.style.visibility=isFace?'visible':'hidden';
@@ -1467,6 +1958,7 @@ function applyColourMode(){
   rebuildPositions();
   updateAxesForFace();
   if(currentMatchHex) runColourMatch(currentMatchHex);
+  if(activeIndex>=0) computeColourSets(activeIndex);
   renderList();
 }
 modeBtn.addEventListener('click',()=>{
@@ -1642,7 +2134,10 @@ function updateConnectors(){
 
 // Target marker outline — white diamond slightly larger, behind the coloured one
 const targetOutlineGeo=new THREE.PlaneGeometry(0.24,0.24);
-const targetOutlineMat=new THREE.MeshBasicMaterial({color:0xffffff,side:THREE.DoubleSide});
+const targetOutlineMat=new THREE.MeshBasicMaterial({
+  color:0xffffff, side:THREE.DoubleSide,
+  polygonOffset:true, polygonOffsetFactor:1, polygonOffsetUnits:1,
+});
 const targetOutline=new THREE.Mesh(targetOutlineGeo,targetOutlineMat);
 targetOutline.renderOrder=0;
 targetOutline.visible=false;
@@ -1709,13 +2204,15 @@ function applyVisibility(){
     const setOk=c.set==='tester'||enabledSets.has('owned');
     const brandOk=!c.brand||enabledBrands.has(c.brand);
     const matchOk=!matchActive||matchVisibleSet.has(i);
-    const show=typeOk&&setOk&&brandOk&&matchOk;
+    const setShow=!colourSetVisibleSet||colourSetVisibleSet.has(i);
+    const show=typeOk&&setOk&&brandOk&&matchOk&&setShow;
     mesh.visible=show;
     outlineMeshes[i].visible=show&&(i===activeIndex);
   });
   updateFilterCounts();
   renderList();
   computeGap();
+  if(activeIndex>=0) computeColourSets(activeIndex);
 }
 
 // ═══════════════════════════════════
@@ -1726,15 +2223,21 @@ let gapPage=0;
 let gapRanked=[]; // full sorted list of {tester, minDist, nearest}
 
 function computeGap(){
-  // Use only currently visible paints (respects all active filters)
-  const owned =colours.filter((_,i)=>pointMeshes[i]&&pointMeshes[i].visible&&colours[i].set==='owned');
-  const testers=colours.filter((_,i)=>pointMeshes[i]&&pointMeshes[i].visible&&colours[i].set==='tester');
+  function passesFiltersGap(c){
+    const types=Array.isArray(c.type)?c.type:[c.type||'Normal'];
+    return types.every(t=>enabledTypes.has(t))
+      && enabledSets.has(c.set||'owned')
+      && (!c.brand||enabledBrands.has(c.brand));
+  }
+  const owned  =colours.filter(c=>c.set==='owned'  &&passesFiltersGap(c));
+  const testers=colours.filter(c=>c.set==='tester'  &&passesFiltersGap(c));
 
-  const sec=document.getElementById('gap-section');
-  if(!testers.length){ sec.style.display='none'; return; }
-  const firstShow=sec.style.display==='none';
-  sec.style.display='';
-  if(firstShow) initCollapsible('gap-header','gap-body');
+  const resultsElCheck=document.getElementById('gap-results');
+  if(!testers.length){
+    resultsElCheck.innerHTML='<p style="font-size:.72rem;color:var(--muted);padding:8px 14px">No tester paints in current filters.</p>';
+    document.getElementById('gap-pagination').innerHTML='';
+    return;
+  }
 
   // For each visible tester, find min distance to any visible owned paint
   gapRanked=testers.map(t=>{
@@ -1765,8 +2268,10 @@ function renderGap(){
     div.style.cursor='pointer';
     const typeArr=Array.isArray(tester.type)?tester.type:[tester.type||'Normal'];
     const tags=typeArr.map(t=>`<span class="type-tag">${t}</span>`).join('');
+    const gapTypeArr=Array.isArray(tester.type)?tester.type:[tester.type||'Normal'];
+    const gapSwatchBg=makeSwatchCSS(tester.hex,gapTypeArr,true);
     div.innerHTML=
-      `<div class="swatch" style="background:${tester.hex};border-radius:50%"></div>`+
+      `<div class="swatch" style="background-image:${gapSwatchBg};background-size:cover;border-radius:50%"></div>`+
       `<div class="colour-meta">`+
         `<div class="colour-name">${tester.name}</div>`+
         `<div class="colour-brand"><span>${tester.brand||''}</span>${tags}</div>`+
@@ -1879,12 +2384,15 @@ function runColourMatch(hex){
     return;
   }
 
-  // Compute distances — only among type-enabled colours
+  // Only match against colours passing all active filters
   const ranked=colours
     .map((c,i)=>({i, c, dist:lchDist(hex,c.hex)[matchBy]}))
-    .filter(({c})=>{ const types=Array.isArray(c.type)?c.type:[c.type||'Normal']; return types.every(t=>enabledTypes.has(t)); })
-    .filter(({c})=>c.set==='tester'||enabledSets.has('owned'))
-    .filter(({c})=>!c.brand||enabledBrands.has(c.brand))
+    .filter(({c})=>{
+      const types=Array.isArray(c.type)?c.type:[c.type||'Normal'];
+      return types.every(t=>enabledTypes.has(t))
+        && enabledSets.has(c.set||'owned')
+        && (!c.brand||enabledBrands.has(c.brand));
+    })
     .sort((a,b)=>a.dist-b.dist).slice(0,5);
 
   matchActive=true;
@@ -1893,8 +2401,15 @@ function runColourMatch(hex){
   applyVisibility();
 
   // Position target marker + outline
-  const tc=getComponents(hex);
-  const{x:tx,y:ty,z:tz}=FACE_FN(currentFace)(tc.x,tc.y,tc.z);
+  let tx,ty,tz;
+  if(currentFace==='ab'){
+    const lab=hexToLab(hex);
+    tx=lab.a/AB_MAX; ty=lab.b/AB_MAX; tz=lab.L/100*2-1;
+  } else {
+    const tc=getComponents(hex);
+    const p=FACE_FN(currentFace)(tc.x,tc.y,tc.z);
+    tx=p.x;ty=p.y;tz=p.z;
+  }
   targetMarker.position.set(tx,ty,tz);
   targetOutline.position.set(tx,ty,tz);
   targetMarker.material.color.set(hex);
@@ -1913,14 +2428,18 @@ function runColourMatch(hex){
 
   // Render match results list
   const resultsEl=document.getElementById('match-results');
+  const maxDist={all:100, hue:0.5, sat:1, val:1}[matchBy]||100;
   resultsEl.innerHTML='';
   ranked.forEach(({c,dist},rank)=>{
-    const maxDist={all:100, hue:0.5, sat:1, val:1}[matchBy]||100;
+    const mTypeArr=Array.isArray(c.type)?c.type:[c.type||'Normal'];
+    const mIsTester=c.set==='tester';
+    const mSwatchBg=makeSwatchCSS(c.hex,mTypeArr,mIsTester);
+    const mRadius=mIsTester?'50%':'3px';
     const pct=Math.round(Math.max(0,(1-dist/maxDist))*100);
     const div=document.createElement('div');
     div.className='match-item'+(rank===0?' rank-1':'');
     div.innerHTML=
-      `<div class="match-swatch" style="background:${c.hex}"></div>`+
+      `<div class="match-swatch" style="background-image:${mSwatchBg};background-size:cover;border-radius:${mRadius}"></div>`+
       `<div class="match-meta">`+
         `<div class="match-name">${c.name}</div>`+
         `<div class="match-brand">${c.brand||''}</div>`+
@@ -1963,6 +2482,8 @@ function clearMatch(){
   // Deselect active item
   if(activeIndex>=0&&outlineMeshes[activeIndex]) outlineMeshes[activeIndex].visible=false;
   activeIndex=-1;
+  colourSetShowActive=false;
+  colourSetVisibleSet=null;
   renderList();
   applyVisibility();
 }
@@ -2004,7 +2525,16 @@ function initCollapsible(headerId, bodyId){
 }
 initCollapsible('colours-header','colours-body');
 initCollapsible('add-header','add-body');
-initCollapsible('match-header','match-body');
+
+// ── Tab switching ─────────────────────────────────────
+document.querySelectorAll('.panel-tab').forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    document.querySelectorAll('.panel-tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.panel-page').forEach(p=>p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(tab.dataset.page).classList.add('active');
+  });
+});
 
 // ═══════════════════════════════════
 // REFERENCE IMAGE + EYEDROPPER
@@ -2027,14 +2557,11 @@ refFile.addEventListener('change',function(){
     offCanvas.height=refImg.naturalHeight;
     offCtx.drawImage(refImg,0,0);
     refImgWrap.classList.add('loaded');
-    // Ensure match section is expanded and uncapped
-    const matchHeader=document.getElementById('match-header');
-    const matchBody=document.getElementById('match-body');
-    if(matchHeader.classList.contains('collapsed')){
-      matchHeader.classList.remove('collapsed');
-      matchBody.classList.remove('collapsed');
-    }
-    matchBody.style.maxHeight='none';
+    // Switch to Colour Match tab
+    document.querySelectorAll('.panel-tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.panel-page').forEach(p=>p.classList.remove('active'));
+    document.querySelector('[data-page="page-match"]').classList.add('active');
+    document.getElementById('page-match').classList.add('active');
   };
   refImg.src=url;
   this.value='';
