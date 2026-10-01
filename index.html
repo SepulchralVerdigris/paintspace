@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>PaintSpace</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Bebas+Neue&display=swap');
@@ -11,16 +11,16 @@
   --ink:#1a1a1a;--paper:#f4f0e8;--accent:#c8392b;--muted:#888;
   --border:#ccc6b8;--panel-w:310px;
 }
-html,body{height:100%;overflow:hidden}
+html,body{height:100%;height:100dvh;overflow:hidden}
 body{
   background:var(--paper);color:var(--ink);
   font-family:'Courier Prime',monospace;
   display:grid;
-  grid-template-columns:1fr var(--panel-w);
+  grid-template-columns:minmax(0,1fr) var(--panel-w);
   grid-template-rows:auto 1fr;
   transition:grid-template-columns .3s ease;
 }
-body.panel-hidden{grid-template-columns:1fr 0}
+body.panel-hidden{grid-template-columns:minmax(0,1fr) 0}
 
 /* Panel column wraps tab bar + scrollable content + sticky footer */
 #panel-col{
@@ -69,6 +69,8 @@ header h1{font-family:'Bebas Neue',sans-serif;font-size:1.9rem;letter-spacing:.0
 /* ── Canvas ── */
 #canvas-wrap{
   position:relative;overflow:hidden;background:#111;cursor:grab;
+  touch-action:none;-webkit-user-select:none;user-select:none;
+  grid-column:1;grid-row:2;min-height:0;
 }
 #canvas-wrap:active{cursor:grabbing}
 canvas{display:block;width:100%!important;height:100%!important}
@@ -121,7 +123,7 @@ canvas{display:block;width:100%!important;height:100%!important}
 
 .add-row{display:flex;gap:6px;margin-bottom:6px}
 .add-row input{
-  flex:1;padding:7px 9px;border:1px solid var(--border);background:#fff;
+  flex:1;min-width:0;padding:7px 9px;border:1px solid var(--border);background:#fff;
   font-family:'Courier Prime',monospace;font-size:.82rem;border-radius:2px;
   outline:none;color:var(--ink);
 }
@@ -249,12 +251,12 @@ canvas{display:block;width:100%!important;height:100%!important}
 
 /* Reference image */
 #ref-img-wrap{
-  position:relative;margin-top:8px;display:none;
+  position:relative;margin-top:8px;display:none;touch-action:none;
   border:1px solid var(--border);border-radius:2px;overflow:hidden;
   cursor:crosshair;
 }
-#ref-img-wrap.loaded{display:block}
-#ref-img{display:block;width:100%;height:auto;max-height:calc(var(--panel-w) * 2);object-fit:contain;pointer-events:none;user-select:none}
+#ref-img-wrap.loaded{display:block;width:fit-content;max-width:100%;margin-left:auto;margin-right:auto}
+#ref-img{display:block;width:auto;max-width:100%;height:auto;max-height:calc(var(--panel-w) * 2);pointer-events:none;user-select:none}
 #dropper-cursor{
   position:absolute;pointer-events:none;display:none;
   width:24px;height:24px;border-radius:50%;
@@ -383,6 +385,110 @@ canvas{display:block;width:100%!important;height:100%!important}
 .panel-page{display:none}
 .panel-page.active{display:block}
 
+/* ════════════════════════════════════════════════
+   MOBILE & TOUCH
+   ════════════════════════════════════════════════ */
+:root{--header-h:56px;--sheet-peek:72px}
+header{position:relative;padding-left:max(18px,env(safe-area-inset-left));padding-right:max(18px,env(safe-area-inset-right))}
+.header-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+#more-btn{display:none}
+#face-flip-btn.is-hidden{visibility:hidden}
+#sheet-handle{display:none}
+#save-toast{bottom:14px;right:18px}
+
+/* Loupe for touch eyedropper */
+#dropper-loupe{
+  position:fixed;z-index:1000;display:none;pointer-events:none;
+  width:96px;height:96px;border-radius:50%;overflow:hidden;
+  border:4px solid #fff;box-shadow:0 0 0 1px #000,0 4px 14px rgba(0,0,0,.45);
+  transform:translate(-50%,-50%);background:#000;
+}
+#dropper-loupe canvas{display:block;width:100%!important;height:100%!important;image-rendering:pixelated}
+#dropper-loupe .loupe-hex{
+  position:absolute;left:0;right:0;bottom:8px;text-align:center;
+  font-family:'Courier Prime',monospace;font-size:.62rem;color:#fff;
+  text-shadow:0 0 3px #000,0 0 3px #000;
+}
+
+/* Compact header: phones (portrait) and short landscape screens */
+@media (max-width:767px),(max-height:500px){
+  header{padding-top:6px;padding-bottom:6px;gap:8px;flex-wrap:nowrap;min-height:var(--header-h)}
+  header h1{font-size:1.35rem;letter-spacing:.06em;flex-shrink:0}
+  .header-controls{flex-wrap:nowrap;gap:6px;min-width:0;flex:1;justify-content:flex-end}
+  .header-controls>div:first-child{min-width:0;flex:0 1 auto}
+  #face-select{min-width:0;max-width:150px;padding:7px 6px;font-size:.8rem}
+  #face-flip-btn.is-hidden{display:none}
+  #mode-toggle-btn{padding:7px 8px}
+  #more-btn{display:flex;padding:7px 10px}
+  .header-actions{
+    display:none;position:absolute;top:100%;right:max(10px,env(safe-area-inset-right));z-index:60;
+    flex-direction:column;align-items:stretch;gap:0;min-width:170px;
+    background:var(--paper);border:2px solid var(--ink);border-top:none;
+    box-shadow:0 8px 20px rgba(0,0,0,.25);
+  }
+  .header-actions.open{display:flex}
+  .header-actions .icon-btn{border:none;border-bottom:1px solid var(--border);border-radius:0;padding:12px 14px;font-size:1rem}
+  .header-actions .icon-btn:last-child{border-bottom:none}
+  #save-toast{top:calc(var(--header-h) + 8px);bottom:auto;right:12px}
+}
+
+/* Short landscape screens: narrower side panel */
+@media (max-height:500px) and (orientation:landscape){
+  :root{--panel-w:260px}
+  #panel-col{padding-bottom:env(safe-area-inset-bottom)}
+  #canvas-wrap{padding-left:env(safe-area-inset-left)}
+}
+
+/* Phones (portrait): panel becomes a bottom sheet under the canvas */
+@media (max-width:767px) and (orientation:portrait){
+  body,body.panel-hidden{
+    grid-template-columns:minmax(0,1fr);
+    grid-template-rows:auto 1fr auto;
+  }
+  #toggle-panel-btn{display:none}
+  #panel-col,body.panel-hidden #panel-col{
+    grid-column:1;grid-row:3;
+    opacity:1;pointer-events:auto;
+    border-left:none;border-top:2px solid var(--ink);
+    height:var(--sheet-h,var(--sheet-peek));
+    transition:height .28s ease;
+    padding-bottom:env(safe-area-inset-bottom);
+    box-shadow:0 -6px 18px rgba(0,0,0,.18);
+  }
+  #panel-col.dragging{transition:none}
+  body[data-sheet="peek"] #panel{visibility:hidden}
+  #sheet-handle{
+    display:flex;justify-content:center;align-items:center;
+    height:22px;flex-shrink:0;cursor:grab;touch-action:none;
+  }
+  #sheet-handle::before{content:'';width:44px;height:5px;border-radius:3px;background:var(--border)}
+  #ref-img{max-height:40dvh}
+  #tooltip{max-width:min(240px,70vw)}
+}
+
+/* Coarse pointers (fingers): bigger touch targets */
+@media (pointer:coarse){
+  .icon-btn{min-height:40px}
+  #face-select{min-height:40px}
+  .panel-tab{font-size:.74rem;padding:12px 4px 10px;min-height:48px}
+  .section-header{padding:14px 14px 13px}
+  .type-toggle,.brand-toggle,.set-toggle,.match-by-btn{
+    padding:9px 13px;font-size:.8rem;min-height:40px;display:inline-flex;align-items:center;
+  }
+  #brand-filters,#type-filters{gap:7px}
+  #gap-pagination .page-btn{padding:9px 14px;min-width:40px;min-height:40px;text-align:center}
+  .colour-item{padding:10px 14px}
+  .cs-row{padding:8px 0}
+  .match-item{padding:8px 0}
+  .add-row input,#match-hex{padding:10px;font-size:16px}
+  #paint-search{font-size:16px}
+  #paint-search-wrap{padding:11px 14px}
+  #paint-search-clear{font-size:1.4rem;padding:0 4px}
+  #clear-btn{padding:14px}
+  .set-radio-lbl{padding:6px 0}
+  #add-btn{min-height:40px}
+}
+
 </style>
 </head>
 <body>
@@ -393,20 +499,20 @@ canvas{display:block;width:100%!important;height:100%!important}
 
     <div style="display:flex;align-items:center;gap:0">
       <select id="face-select">
-        <option value="3d">3D — Hue · Saturation · Value</option>
-        <option value="hs">Face: Hue × Saturation</option>
-        <option value="hv">Face: Hue × Value</option>
-        <option value="sv">Face: Saturation × Value</option>
-        <option value="circle_hs">Circle: Hue + Saturation</option>
-        <option value="circle_hv">Circle: Hue + Value</option>
-        <option value="ab">Lab: a* × b* (LCh only)</option>
+        <option value="3d" data-short="3D">3D — Hue · Saturation · Value</option>
+        <option value="hs" data-short="H × S">Face: Hue × Saturation</option>
+        <option value="hv" data-short="H × V">Face: Hue × Value</option>
+        <option value="sv" data-short="S × V">Face: Saturation × Value</option>
+        <option value="circle_hs" data-short="Circle H+S">Circle: Hue + Saturation</option>
+        <option value="circle_hv" data-short="Circle H+V">Circle: Hue + Value</option>
+        <option value="ab" data-short="a* × b*">Lab: a* × b* (LCh only)</option>
       </select>
       <button id="face-next-btn" class="icon-btn" style="border-left:none;border-radius:0 2px 2px 0;padding:7px 9px" title="Next view">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
           <polyline points="5,3 11,8 5,13"/>
         </svg>
       </button>
-      <button id="face-flip-btn" class="icon-btn" style="border-radius:2px;padding:7px 9px;visibility:hidden" title="Flip 180°">
+      <button id="face-flip-btn" class="icon-btn is-hidden" style="border-radius:2px;padding:7px 9px" title="Flip 180°">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
           <path d="M2 8h12M10 4l4 4-4 4"/>
           <path d="M6 4L2 8l4 4"/>
@@ -419,6 +525,11 @@ canvas{display:block;width:100%!important;height:100%!important}
       HSV
     </button>
 
+    <button class="icon-btn" id="more-btn" title="More" aria-label="More actions" aria-expanded="false" aria-controls="header-actions">
+      <svg viewBox="0 0 16 16" fill="currentColor" width="15" height="15"><circle cx="3" cy="8" r="1.6"/><circle cx="8" cy="8" r="1.6"/><circle cx="13" cy="8" r="1.6"/></svg>
+    </button>
+
+    <div class="header-actions" id="header-actions">
     <button class="icon-btn" id="toggle-panel-btn" title="Toggle sidebar">
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
         <rect x="1" y="1" width="14" height="14" rx="1.5"/>
@@ -441,6 +552,7 @@ canvas{display:block;width:100%!important;height:100%!important}
       </svg>
       EXPORT
     </button>
+    </div>
 
   </div>
 </header>
@@ -453,6 +565,8 @@ canvas{display:block;width:100%!important;height:100%!important}
 </div>
 
 <div id="panel-col">
+
+  <div id="sheet-handle" role="button" aria-label="Resize panel" tabindex="0"></div>
 
   <!-- TAB BAR -->
   <div id="panel-tabs">
@@ -1262,7 +1376,7 @@ function showSaved(){
   if(!toast){
     toast=document.createElement('div');
     toast.id='save-toast';
-    toast.style.cssText=`position:fixed;bottom:14px;right:18px;padding:5px 12px;
+    toast.style.cssText=`position:fixed;padding:5px 12px;
       background:var(--ink);color:var(--paper);font-family:'Bebas Neue',sans-serif;
       font-size:.72rem;letter-spacing:.08em;border-radius:2px;
       opacity:0;transition:opacity .3s;pointer-events:none;z-index:999`;
@@ -1365,74 +1479,79 @@ function updateCamera(){
 }
 updateCamera();
 
-let isDragging=false,prevX=0,prevY=0,dragMoved=false;
-wrap.addEventListener('mousedown',e=>{isDragging=true;prevX=e.clientX;prevY=e.clientY;dragMoved=false;});
-window.addEventListener('mouseup',()=>{isDragging=false;});
-window.addEventListener('mousemove',e=>{
-  if(!isDragging)return;
-  const dx=e.clientX-prevX,dy=e.clientY-prevY;
-  if(Math.abs(dx)+Math.abs(dy)>2)dragMoved=true;
-  theta-=dx*0.007;
-  phi=Math.max(0.05,Math.min(Math.PI-0.05,phi+dy*0.007));
-  prevX=e.clientX;prevY=e.clientY;
-  updateCamera();
-});
-wrap.addEventListener('wheel',e=>{
-  e.preventDefault();
-  radius=Math.max(2.5,Math.min(10,radius+e.deltaY*0.012));
-  updateCamera();
-},{passive:false});
+// ── Unified pointer input (mouse, touch, pen) ─────────────────────────
+// One code path for rotate / pinch-zoom / tap-to-select, so touch taps
+// select paints exactly like mouse clicks do.
+const activePointers=new Map();      // pointerId -> {x,y}
+let dragMoved=false,downPos=null,lastPinchDist=null;
+const TAP_SLOP={mouse:3,pen:6,touch:9};
 
-let lastTouch=null;
-let lastPinchDist=null;
-let touchMode='none'; // 'drag' | 'pinch'
+function pinchDistance(){
+  const [a,b]=[...activePointers.values()];
+  return Math.hypot(a.x-b.x,a.y-b.y);
+}
 
-wrap.addEventListener('touchstart',e=>{
-  e.preventDefault();
-  if(e.touches.length===1){
-    touchMode='drag';
-    lastTouch=e.touches[0];
-    lastPinchDist=null;
-  } else if(e.touches.length===2){
-    touchMode='pinch';
-    lastTouch=null;
-    const dx=e.touches[0].clientX-e.touches[1].clientX;
-    const dy=e.touches[0].clientY-e.touches[1].clientY;
-    lastPinchDist=Math.sqrt(dx*dx+dy*dy);
+wrap.addEventListener('pointerdown',e=>{
+  if(e.pointerType==='mouse'&&e.button!==0)return;
+  try{wrap.setPointerCapture(e.pointerId);}catch(_){}
+  activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(activePointers.size===1){
+    downPos={x:e.clientX,y:e.clientY,type:e.pointerType};
+    dragMoved=false;
+    if(e.pointerType!=='mouse') hideTooltip();
+  } else if(activePointers.size===2){
+    dragMoved=true;               // a pinch is never a tap
+    lastPinchDist=pinchDistance();
   }
-},{passive:false});
+});
 
-wrap.addEventListener('touchmove',e=>{
-  e.preventDefault();
-  if(touchMode==='drag'&&e.touches.length===1&&lastTouch){
-    theta-=(e.touches[0].clientX-lastTouch.clientX)*0.01;
-    phi=Math.max(0.05,Math.min(Math.PI-0.05,phi+(e.touches[0].clientY-lastTouch.clientY)*0.01));
-    lastTouch=e.touches[0];
+wrap.addEventListener('pointermove',e=>{
+  const prev=activePointers.get(e.pointerId);
+  if(!prev){
+    // Not pressed: hover tooltip for mouse / pen only
+    if(e.pointerType!=='touch') handleHover(e);
+    return;
+  }
+  const dx=e.clientX-prev.x,dy=e.clientY-prev.y;
+  activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(activePointers.size===1){
+    if(downPos&&!dragMoved&&
+       Math.hypot(e.clientX-downPos.x,e.clientY-downPos.y)>(TAP_SLOP[e.pointerType]||6)){
+      dragMoved=true;
+      if(e.pointerType==='mouse') hideTooltip();
+    }
+    if(!dragMoved)return;
+    const k=e.pointerType==='mouse'?0.007:0.01;
+    theta-=dx*k;
+    phi=Math.max(0.05,Math.min(Math.PI-0.05,phi+dy*k));
     updateCamera();
-  } else if(touchMode==='pinch'&&e.touches.length===2){
-    const dx=e.touches[0].clientX-e.touches[1].clientX;
-    const dy=e.touches[0].clientY-e.touches[1].clientY;
-    const dist=Math.sqrt(dx*dx+dy*dy);
-    if(lastPinchDist){
+  } else if(activePointers.size===2){
+    const dist=pinchDistance();
+    if(lastPinchDist&&dist>0){
       radius=Math.max(2.5,Math.min(10,radius*(lastPinchDist/dist)));
       updateCamera();
     }
     lastPinchDist=dist;
   }
-},{passive:false});
+});
 
-wrap.addEventListener('touchend',e=>{
-  e.preventDefault();
-  if(e.touches.length===0){
-    touchMode='none';
-    lastTouch=null;
-    lastPinchDist=null;
-  } else if(e.touches.length===1){
-    // Dropped from pinch to single finger — reset to drag without spinning
-    touchMode='drag';
-    lastTouch=e.touches[0];
-    lastPinchDist=null;
+function endPointer(e){
+  if(!activePointers.has(e.pointerId))return;
+  activePointers.delete(e.pointerId);
+  if(activePointers.size<2) lastPinchDist=null;
+  if(activePointers.size===0){
+    if(e.type==='pointerup'&&!dragMoved) handleTap(e);
+    downPos=null;
   }
+}
+wrap.addEventListener('pointerup',endPointer);
+wrap.addEventListener('pointercancel',endPointer);
+wrap.addEventListener('pointerleave',e=>{ if(e.pointerType==='mouse'&&!activePointers.size) hideTooltip(); });
+
+wrap.addEventListener('wheel',e=>{
+  e.preventDefault();
+  radius=Math.max(2.5,Math.min(10,radius+e.deltaY*0.012));
+  updateCamera();
 },{passive:false});
 
 // ═══════════════════════════════════
@@ -1449,38 +1568,60 @@ function setMouse(e){
   mouse.y=-((e.clientY-r.top)/r.height)*2+1;
 }
 
-wrap.addEventListener('mousemove',e=>{
+function pickMesh(e){
   setMouse(e);
   raycaster.setFromCamera(mouse,camera);
   const hits=raycaster.intersectObjects(pointMeshes).filter(h=>h.object.visible);
-  if(hits.length){
-    const m=hits[0].object;
-    if(m!==hoveredMesh){
-      hoveredMesh=m;
-      const{entry}=m.userData;
-      const badge=colourMode==='lch'
-        ?`L\u200a${Math.round(entry.lch.L*100)}&emsp;C\u200a${Math.round(entry.lch.C*C_MAX)}&emsp;H\u200a${Math.round(entry.lch.h*360)}°`
-        :`H\u200a${Math.round(entry.hsv.h*360)}°&emsp;S\u200a${Math.round(entry.hsv.s*100)}%&emsp;V\u200a${Math.round(entry.hsv.v*100)}%`;
-      tooltip.innerHTML=`<strong>${entry.name}</strong><br><em style="color:#999">${entry.brand||''}</em><br><br>${badge}<br>${entry.hex}`;
-      tooltip.style.borderLeftColor=entry.hex;
-    }
-    const r2=wrap.getBoundingClientRect();
-    tooltip.style.cssText+=`;display:block;left:${e.clientX-r2.left+16}px;top:${e.clientY-r2.top-10}px`;
+  return hits.length?hits[0].object:null;
+}
+
+function showTooltip(entry,clientX,clientY){
+  const badge=colourMode==='lch'
+    ?`L ${Math.round(entry.lch.L*100)}&emsp;C ${Math.round(entry.lch.C*C_MAX)}&emsp;H ${Math.round(entry.lch.h*360)}°`
+    :`H ${Math.round(entry.hsv.h*360)}°&emsp;S ${Math.round(entry.hsv.s*100)}%&emsp;V ${Math.round(entry.hsv.v*100)}%`;
+  tooltip.innerHTML=`<strong>${entry.name}</strong><br><em style="color:#999">${entry.brand||''}</em><br><br>${badge}<br>${entry.hex}`;
+  tooltip.style.borderLeftColor=entry.hex;
+  positionTooltip(clientX,clientY);
+}
+
+function positionTooltip(clientX,clientY){
+  const r=wrap.getBoundingClientRect();
+  tooltip.style.display='block';
+  const tw=tooltip.offsetWidth,th=tooltip.offsetHeight;
+  let x=clientX-r.left+16,y=clientY-r.top-10;
+  if(x+tw>r.width-8) x=clientX-r.left-tw-16;   // flip to the left of the pointer
+  if(y+th>r.height-8) y=r.height-th-8;
+  tooltip.style.left=Math.max(8,x)+'px';
+  tooltip.style.top=Math.max(8,y)+'px';
+}
+
+function hideTooltip(){
+  hoveredMesh=null;
+  tooltip.style.display='none';
+}
+
+function handleHover(e){
+  const m=pickMesh(e);
+  if(m){
+    if(m!==hoveredMesh){hoveredMesh=m;showTooltip(m.userData.entry,e.clientX,e.clientY);}
+    else positionTooltip(e.clientX,e.clientY);
     wrap.style.cursor='pointer';
   } else {
-    hoveredMesh=null;
-    tooltip.style.display='none';
-    wrap.style.cursor='grab';
+    hideTooltip();
+    wrap.style.cursor='';
   }
-});
+}
 
-wrap.addEventListener('click',e=>{
-  if(dragMoved)return;
-  setMouse(e);
-  raycaster.setFromCamera(mouse,camera);
-  const hits=raycaster.intersectObjects(pointMeshes).filter(h=>h.object.visible);
-  if(hits.length)highlightItem(hits[0].object.userData.index);
-});
+function handleTap(e){
+  const m=pickMesh(e);
+  if(!m){ if(e.pointerType!=='mouse') hideTooltip(); return; }
+  if(e.pointerType!=='mouse'){
+    // Touch has no hover, so pin the tooltip where the finger tapped
+    hoveredMesh=m;
+    showTooltip(m.userData.entry,e.clientX,e.clientY);
+  }
+  highlightItem(m.userData.index);
+}
 
 // ═══════════════════════════════════
 // SIDEBAR
@@ -1555,6 +1696,8 @@ function highlightItem(i){
   }
   activeIndex=i;
   if(outlineMeshes[i]) outlineMeshes[i].visible=true;
+  // On phones a fully-expanded sheet hides the canvas — drop to half so the pulse is visible
+  if(typeof isPhone==='function'&&isPhone()&&sheetState==='full') setSheet('half');
   renderList();
   // Find the rendered row for this index and scroll to it
   const el=list.querySelector(`[data-index="${i}"]`);
@@ -1928,7 +2071,7 @@ function applyFaceChange(){
   const isFace=currentFace!=='3d'&&!isCircle&&currentFace!=='ab';
   circleGuides.visible=isCircle;
   cubeGuides.forEach(o=>{ if(o.visible!==undefined) o.visible=!isCircle; });
-  flipBtn.style.visibility=isFace?'visible':'hidden';
+  flipBtn.classList.toggle('is-hidden',!isFace);
   updateAxesForFace();
   rebuildPositions();
   const cam=FACE_CAM[currentFace];
@@ -2533,6 +2676,7 @@ document.querySelectorAll('.panel-tab').forEach(tab=>{
     document.querySelectorAll('.panel-page').forEach(p=>p.classList.remove('active'));
     tab.classList.add('active');
     document.getElementById(tab.dataset.page).classList.add('active');
+    if(isPhone()&&sheetState==='peek') setSheet('half');
   });
 });
 
@@ -2557,6 +2701,7 @@ refFile.addEventListener('change',function(){
     offCanvas.height=refImg.naturalHeight;
     offCtx.drawImage(refImg,0,0);
     refImgWrap.classList.add('loaded');
+    if(isPhone()&&sheetState==='peek') setSheet('half');
     // Switch to Colour Match tab
     document.querySelectorAll('.panel-tab').forEach(t=>t.classList.remove('active'));
     document.querySelectorAll('.panel-page').forEach(p=>p.classList.remove('active'));
@@ -2568,7 +2713,7 @@ refFile.addEventListener('change',function(){
 });
 
 function samplePixel(e){
-  const rect=refImgWrap.getBoundingClientRect();
+  const rect=refImg.getBoundingClientRect();
   const xRatio=(e.clientX-rect.left)/rect.width;
   const yRatio=(e.clientY-rect.top)/rect.height;
   const px=Math.floor(xRatio*offCanvas.width);
@@ -2594,36 +2739,193 @@ refImgWrap.addEventListener('click',e=>{
   runColourMatch(hex);
 });
 
-// Touch support
+// Touch support — a magnifying loupe floats above the finger so the
+// sampled spot is never hidden under it.
+const loupe=document.createElement('div');
+loupe.id='dropper-loupe';
+const loupeCanvas=document.createElement('canvas');
+loupeCanvas.width=loupeCanvas.height=88;
+const loupeCtx=loupeCanvas.getContext('2d');
+const loupeHex=document.createElement('div');
+loupeHex.className='loupe-hex';
+loupe.append(loupeCanvas,loupeHex);
+document.body.appendChild(loupe);
+const LOUPE_SRC=11;          // source pixels across the loupe
+const LOUPE_LIFT=78;         // px above the finger
+
+function drawLoupe(pt){
+  const rect=refImg.getBoundingClientRect();
+  const cx=Math.max(rect.left,Math.min(rect.right-1,pt.clientX));
+  const cy=Math.max(rect.top,Math.min(rect.bottom-1,pt.clientY));
+  const px=Math.floor((cx-rect.left)/rect.width*offCanvas.width);
+  const py=Math.floor((cy-rect.top)/rect.height*offCanvas.height);
+  const half=Math.floor(LOUPE_SRC/2);
+  loupeCtx.imageSmoothingEnabled=false;
+  loupeCtx.fillStyle='#000';
+  loupeCtx.fillRect(0,0,88,88);
+  loupeCtx.drawImage(offCanvas,px-half,py-half,LOUPE_SRC,LOUPE_SRC,0,0,88,88);
+  const cell=88/LOUPE_SRC;
+  loupeCtx.strokeStyle='#fff';loupeCtx.lineWidth=2;
+  loupeCtx.strokeRect(half*cell,half*cell,cell,cell);
+  loupeCtx.strokeStyle='#000';loupeCtx.lineWidth=1;
+  loupeCtx.strokeRect(half*cell-1.5,half*cell-1.5,cell+3,cell+3);
+  const hex=samplePixel({clientX:cx,clientY:cy});
+  loupe.style.borderColor=hex;
+  loupeHex.textContent=hex;
+  // Keep the loupe on screen: lift above the finger, or drop below near the top edge
+  let ly=pt.clientY-LOUPE_LIFT;
+  if(ly<56) ly=pt.clientY+LOUPE_LIFT;
+  const lx=Math.max(56,Math.min(window.innerWidth-56,pt.clientX));
+  loupe.style.left=lx+'px';
+  loupe.style.top=ly+'px';
+  loupe.style.display='block';
+}
+
 refImgWrap.addEventListener('touchstart',e=>{
   e.preventDefault();
-  refImgWrap.classList.add('touching');
-  moveCursor(e.touches[0]);
+  drawLoupe(e.touches[0]);
 },{passive:false});
 refImgWrap.addEventListener('touchmove',e=>{
   e.preventDefault();
-  moveCursor(e.touches[0]);
+  drawLoupe(e.touches[0]);
 },{passive:false});
-refImgWrap.addEventListener('touchend',e=>{
+function endLoupe(e,commit){
   e.preventDefault();
-  refImgWrap.classList.remove('touching');
-  const hex=samplePixel(e.changedTouches[0]);
+  loupe.style.display='none';
+  if(!commit)return;
+  const t=e.changedTouches[0];
+  const rect=refImg.getBoundingClientRect();
+  const hex=samplePixel({
+    clientX:Math.max(rect.left,Math.min(rect.right-1,t.clientX)),
+    clientY:Math.max(rect.top,Math.min(rect.bottom-1,t.clientY))
+  });
   matchHexEl.value=hex;
   matchSwatchEl.style.background=hex;
   runColourMatch(hex);
-},{passive:false});
+}
+refImgWrap.addEventListener('touchend',e=>endLoupe(e,true),{passive:false});
+refImgWrap.addEventListener('touchcancel',e=>endLoupe(e,false),{passive:false});
 
 // ═══════════════════════════════════
 // RESIZE
 // ═══════════════════════════════════
 function resize(){
   const w=wrap.clientWidth,h=wrap.clientHeight;
+  if(!w||!h)return;                      // canvas fully covered (e.g. sheet expanded)
   renderer.setSize(w,h,false);
   camera.aspect=w/h;
   camera.updateProjectionMatrix();
 }
 new ResizeObserver(resize).observe(wrap);
 resize();
+
+// ═══════════════════════════════════
+// MOBILE LAYOUT: header menu, bottom sheet, touch hints
+// ═══════════════════════════════════
+const phoneMQ=window.matchMedia('(max-width:767px) and (orientation:portrait)');
+const compactMQ=window.matchMedia('(max-width:767px),(max-height:500px)');
+const coarseMQ=window.matchMedia('(pointer:coarse)');
+function isPhone(){return phoneMQ.matches;}
+
+// Header "⋯" menu (Panel / Import / Export)
+const moreBtn=document.getElementById('more-btn');
+const headerActions=document.getElementById('header-actions');
+function setMenu(open){
+  headerActions.classList.toggle('open',open);
+  moreBtn.setAttribute('aria-expanded',open?'true':'false');
+}
+moreBtn.addEventListener('click',e=>{e.stopPropagation();setMenu(!headerActions.classList.contains('open'));});
+document.addEventListener('pointerdown',e=>{
+  if(headerActions.classList.contains('open')&&!headerActions.contains(e.target)&&!moreBtn.contains(e.target)) setMenu(false);
+});
+headerActions.addEventListener('click',e=>{ if(e.target.closest('button')) setMenu(false); });
+document.getElementById('csv-file').addEventListener('change',()=>setMenu(false));
+
+// Short view names in the compact header
+function applyFaceLabels(){
+  [...faceSelect.options].forEach(o=>{
+    if(!o.dataset.long) o.dataset.long=o.textContent;
+    o.textContent=compactMQ.matches&&o.dataset.short?o.dataset.short:o.dataset.long;
+  });
+}
+
+// Touch-appropriate hint
+function applyHint(){
+  document.getElementById('hint').textContent=coarseMQ.matches?'drag · pinch · tap':'drag · scroll · click';
+}
+
+// Measure header so the toast & sheet can size themselves
+function measureHeader(){
+  const h=document.querySelector('header').offsetHeight;
+  document.documentElement.style.setProperty('--header-h',h+'px');
+}
+
+// Bottom sheet (phones): peek → half → full
+const panelCol=document.getElementById('panel-col');
+const sheetHandle=document.getElementById('sheet-handle');
+let sheetState='peek';
+function sheetHeights(){
+  const vh=window.innerHeight;
+  const headerH=document.querySelector('header').offsetHeight;
+  const tabsH=document.getElementById('panel-tabs').offsetHeight;
+  const peek=sheetHandle.offsetHeight+tabsH+2;
+  return {peek,half:Math.round((vh-headerH)*0.55),full:vh-headerH};
+}
+function setSheet(state){
+  sheetState=state;
+  document.body.dataset.sheet=state;
+  if(!isPhone()){panelCol.style.removeProperty('--sheet-h');return;}
+  panelCol.style.setProperty('--sheet-h',sheetHeights()[state]+'px');
+}
+// Drag the handle (or tap it to cycle)
+let sheetDrag=null;
+sheetHandle.addEventListener('pointerdown',e=>{
+  if(!isPhone())return;
+  sheetHandle.setPointerCapture(e.pointerId);
+  sheetDrag={y:e.clientY,h:panelCol.offsetHeight,moved:false};
+  panelCol.classList.add('dragging');
+});
+sheetHandle.addEventListener('pointermove',e=>{
+  if(!sheetDrag)return;
+  const dy=sheetDrag.y-e.clientY;
+  if(Math.abs(dy)>5) sheetDrag.moved=true;
+  const H=sheetHeights();
+  const h=Math.max(H.peek,Math.min(H.full,sheetDrag.h+dy));
+  panelCol.style.setProperty('--sheet-h',h+'px');
+  document.body.dataset.sheet=h>H.peek+10?'half':'peek';
+});
+function endSheetDrag(){
+  if(!sheetDrag)return;
+  panelCol.classList.remove('dragging');
+  const H=sheetHeights();
+  if(!sheetDrag.moved){
+    setSheet(sheetState==='peek'?'half':sheetState==='half'?'full':'peek');
+  } else {
+    const h=panelCol.offsetHeight;
+    const nearest=Object.entries(H).sort((a,b)=>Math.abs(a[1]-h)-Math.abs(b[1]-h))[0][0];
+    setSheet(nearest);
+  }
+  sheetDrag=null;
+}
+sheetHandle.addEventListener('pointerup',endSheetDrag);
+sheetHandle.addEventListener('pointercancel',endSheetDrag);
+sheetHandle.addEventListener('keydown',e=>{
+  if(e.key==='Enter'||e.key===' '){e.preventDefault();setSheet(sheetState==='peek'?'half':sheetState==='half'?'full':'peek');}
+});
+
+function applyLayout(){
+  measureHeader();
+  applyFaceLabels();
+  applyHint();
+  if(!compactMQ.matches) setMenu(false);
+  setSheet(sheetState);
+}
+[phoneMQ,compactMQ,coarseMQ].forEach(mq=>{
+  if(mq.addEventListener) mq.addEventListener('change',applyLayout);
+  else mq.addListener(applyLayout);
+});
+window.addEventListener('resize',()=>{measureHeader();setSheet(sheetState);});
+applyLayout();
 
 // ═══════════════════════════════════
 // RENDER LOOP
