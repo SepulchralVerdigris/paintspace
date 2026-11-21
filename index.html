@@ -293,6 +293,7 @@ canvas{display:block;width:100%!important;height:100%!important}
   flex-shrink:0;display:inline-block;margin-left:2px;
 }
 .set-dot.owned{border-radius:2px}
+.set-dot.previous{border-style:dashed;border-color:rgba(0,0,0,.45)}
 
 /* Set radio in add form */
 .set-radio-group{display:flex;gap:8px;margin-top:5px}
@@ -347,6 +348,44 @@ canvas{display:block;width:100%!important;height:100%!important}
 #clear-btn:hover{background:#fce8e6;color:var(--accent)}
 /* ── Colour Sets ── */
 #coloursets-inner{padding:10px 14px}
+/* Add paint from swatch (Colour Match) */
+#afs{padding:10px 14px 16px;border-top:1px solid var(--border);margin-top:6px}
+#afs-open{width:100%;justify-content:center}
+#afs-open[hidden],#afs-form[hidden],#afs[hidden]{display:none}
+#afs-form{margin-top:2px}
+.afs-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+#afs-swatch{width:28px;height:28px;border-radius:3px;border:1px solid rgba(0,0,0,.15)}
+#afs-hex{font-size:.8rem}
+.afs-row{display:flex;gap:6px;margin-bottom:8px}
+.afs-row input{flex:1;min-width:0;padding:7px 9px;border:1.5px solid var(--border);border-radius:2px;
+  background:#fff;font-family:'Courier Prime',monospace;font-size:.78rem;color:var(--ink)}
+.afs-row input:focus{outline:none;border-color:var(--ink)}
+.afs-types{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px}
+.afs-types span{padding:4px 8px;border:1px solid var(--border);border-radius:2px;cursor:pointer;
+  font-family:'Courier Prime',monospace;font-size:.68rem;color:var(--muted);user-select:none}
+.afs-types span.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+#afs-sets{margin-bottom:2px}
+.afs-actions{display:flex;flex-direction:column}
+.afs-actions .sd-primary{margin-top:10px}
+@media (pointer:coarse){
+  .afs-row input{font-size:16px;padding:10px}
+  .afs-types span{padding:8px 11px;font-size:.76rem}
+}
+#cs-edit{display:flex;gap:6px;align-items:stretch;flex-wrap:wrap;margin:0 0 12px}
+#cs-edit[hidden]{display:none}
+.cs-edit-sets{display:flex;flex:1 1 auto;min-width:0;border:1px solid var(--ink);border-radius:2px;overflow:hidden}
+.cs-edit-sets button,#cs-delete{
+  font-family:'Courier Prime',monospace;font-size:.7rem;padding:6px 6px;cursor:pointer;
+  background:var(--paper);color:var(--ink);border:none;white-space:nowrap;
+}
+.cs-edit-sets button{flex:1;border-left:1px solid var(--ink)}
+.cs-edit-sets button:first-child{border-left:none}
+.cs-edit-sets button[aria-checked="true"]{background:var(--ink);color:var(--paper)}
+.cs-edit-sets button:hover:not([aria-checked="true"]){background:rgba(0,0,0,.06)}
+#cs-delete{border:1px solid var(--border);border-radius:2px;color:var(--muted)}
+#cs-delete:hover{border-color:var(--accent);color:var(--accent)}
+#cs-delete.confirm{background:var(--accent);border-color:var(--accent);color:#fff}
+@media (pointer:coarse){.cs-edit-sets button,#cs-delete{min-height:40px;font-size:.76rem}}
 .cs-group{margin-bottom:10px}
 .cs-group-label{
   font-family:'Courier Prime',monospace;font-size:.68rem;color:var(--muted);
@@ -480,7 +519,7 @@ header{position:relative;padding-left:max(18px,env(safe-area-inset-left));paddin
 /* Loupe for touch eyedropper */
 #dropper-loupe{
   position:fixed;z-index:1000;display:none;pointer-events:none;
-  width:96px;height:96px;border-radius:50%;overflow:hidden;
+  width:120px;height:120px;border-radius:50%;overflow:hidden;
   border:4px solid #fff;box-shadow:0 0 0 1px #000,0 4px 14px rgba(0,0,0,.45);
   transform:translate(-50%,-50%);background:#000;
 }
@@ -713,6 +752,7 @@ header{position:relative;padding-left:max(18px,env(safe-area-inset-left));paddin
       <div id="set-filters">
         <span class="set-toggle on" data-set="owned">&#9632; Owned</span>
         <span class="set-toggle on" data-set="tester">&#9679; Tester</span>
+        <span class="set-toggle on" data-set="previous">&#9676; Previously owned</span>
       </div>
       <div id="type-filters">
         <div class="filter-label">Show types</div>
@@ -796,6 +836,29 @@ header{position:relative;padding-left:max(18px,env(safe-area-inset-left));paddin
         <div id="dropper-cursor"></div>
       </div>
       <div id="match-results"></div>
+      <div id="afs" hidden>
+        <button type="button" id="afs-open" class="icon-btn">＋ Add paint from this swatch</button>
+        <div id="afs-form" hidden>
+          <div class="afs-head"><span id="afs-swatch"></span><code id="afs-hex"></code></div>
+          <div class="afs-row">
+            <input id="afs-name" placeholder="Paint name" autocomplete="off">
+            <input id="afs-brand" placeholder="Brand" list="afs-brands" autocomplete="off">
+            <datalist id="afs-brands"></datalist>
+          </div>
+          <div class="afs-types" id="afs-types">
+            <span data-type="Normal" class="on">Normal</span><span data-type="Metallic">Metallic</span><span data-type="Air">Air</span><span data-type="Wash">Wash</span><span data-type="Contrast">Contrast</span><span data-type="Technical">Technical</span><span data-type="Fluo">Fluo</span>
+          </div>
+          <div class="cs-edit-sets" id="afs-sets" role="radiogroup" aria-label="Status">
+            <button type="button" data-set="owned" role="radio" aria-checked="true">■ Owned</button>
+            <button type="button" data-set="tester" role="radio" aria-checked="false">● Tester</button>
+            <button type="button" data-set="previous" role="radio" aria-checked="false">◌ Prev. owned</button>
+          </div>
+          <div class="afs-actions">
+            <button type="button" id="afs-add" class="sd-primary">Add paint</button>
+            <button type="button" id="afs-cancel" class="sd-link">Cancel</button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -820,6 +883,14 @@ header{position:relative;padding-left:max(18px,env(safe-area-inset-left));paddin
         <div id="coloursets-selected" style="display:flex;align-items:flex-start;gap:8px;padding:0 0 8px;font-size:.75rem">
           <div id="cs-swatch" style="width:28px;height:28px;border-radius:3px;flex-shrink:0;margin-top:2px"></div>
           <div id="cs-name" style="color:var(--muted);font-size:.72rem;line-height:1.5">Select a paint to analyse</div>
+        </div>
+        <div id="cs-edit" hidden>
+          <div class="cs-edit-sets" role="radiogroup" aria-label="Paint status">
+            <button type="button" data-set="owned" role="radio">■ Owned</button>
+            <button type="button" data-set="tester" role="radio">● Tester</button>
+            <button type="button" data-set="previous" role="radio">◌ Prev. owned</button>
+          </div>
+          <button type="button" id="cs-delete">Delete paint</button>
         </div>
       </div>
       <div id="cs-groups" style="padding:0 14px 14px">
@@ -1406,6 +1477,11 @@ const pointMeshes=[];
 const outlineMeshes=[];
 let colours=[];
 
+// Paint sets: owned, tester, or previously owned (shown and analysed like a tester)
+const PAINT_SETS=['owned','tester','previous'];
+const SET_LABELS={owned:'■ Owned',tester:'● Tester',previous:'◌ Prev. owned'};
+const isTesterLike=c=>c.set==='tester'||c.set==='previous';
+
 // a* and b* range roughly -128..+127; normalise to -1..1 using 128
 const AB_MAX=128;
 
@@ -1426,9 +1502,9 @@ function addColour(entry){
   entry.hsv=hexToHsv(entry.hex);
   if(!entry.type) entry.type=['Normal'];
   else if(!Array.isArray(entry.type)) entry.type=[entry.type];
-  if(!entry.set) entry.set='owned';
+  if(!PAINT_SETS.includes(entry.set)) entry.set='owned';
   const pos=getPos(entry);
-  const isTester=entry.set==='tester';
+  const isTester=isTesterLike(entry);
 
   // Outline (white, behind)
   const outline=new THREE.Mesh(
@@ -1532,28 +1608,9 @@ function scheduleSave(){
 }
 
 // Initialise: load from DB or fall back to INITIAL
-// Corrections applied to palettes saved before a built-in entry was fixed.
-// Keyed by "brand|name"; only listed fields are overwritten.
-const DATA_FIXES={
-  'Citadel|Warplock Bronze':{type:['Metallic']},
-};
-function applyDataFixes(list){
-  let changed=false;
-  list.forEach(c=>{
-    const fix=DATA_FIXES[`${c.brand||''}|${c.name}`];
-    if(!fix)return;
-    for(const [k,v] of Object.entries(fix)){
-      if(JSON.stringify(c[k])!==JSON.stringify(v)){c[k]=v;changed=true;}
-    }
-  });
-  return changed;
-}
-
 openDB().then(()=>dbLoad()).then(saved=>{
   if(saved.length>0){
-    const fixed=applyDataFixes(saved);
     saved.sort((a,b)=>a.id-b.id).forEach(addColour);
-    if(fixed) setTimeout(()=>scheduleSave(),0);
   } else {
     INITIAL.forEach(addColour);
   }
@@ -1579,7 +1636,7 @@ function postLoad(){
 // ── Filter state — must be declared before rebuildBrandFilters is called ──────
 const enabledBrands=new Set();
 const enabledTypes=new Set(['Normal','Metallic','Air','Wash','Contrast','Technical','Fluo']);
-const enabledSets=new Set(['owned','tester']);
+const enabledSets=new Set(['owned','tester','previous']);
 
 function rebuildBrandFilters(){
   const container=document.getElementById('brand-filters');
@@ -1829,7 +1886,7 @@ function renderList(){
     div.dataset.index=i;
     const typeArr=Array.isArray(c.type)?c.type:[c.type||'Normal'];
     const tags=typeArr.map(t=>`<span class="type-tag">${t}</span>`).join('');
-    const isTesterItem=c.set==='tester';
+    const isTesterItem=isTesterLike(c);
     const swatchBg=makeSwatchCSS(c.hex,typeArr,isTesterItem);
     const swatchRadius=isTesterItem?'50%':'3px';
     const setDot=`<span class="set-dot ${c.set||'owned'}" style="background:${c.hex}"></span>`;
@@ -1926,7 +1983,7 @@ function renderColourSetGroup(containerId, items){
   }
   items.forEach(({i,c})=>{
     const typeArr=Array.isArray(c.type)?c.type:[c.type||'Normal'];
-    const isTester=c.set==='tester';
+    const isTester=isTesterLike(c);
     const bg=makeSwatchCSS(c.hex,typeArr,isTester);
     const radius=isTester?'50%':'3px';
     const div=document.createElement('div');
@@ -1949,10 +2006,11 @@ function computeColourSets(idx){
   // Update selected paint display
   const typeArr=Array.isArray(c.type)?c.type:[c.type||'Normal'];
   document.getElementById('cs-swatch').style.cssText=
-    `width:28px;height:28px;border-radius:${c.set==='tester'?'50%':'3px'};`+
-    `background-image:${makeSwatchCSS(c.hex,typeArr,c.set==='tester')};background-size:cover;flex-shrink:0`;
+    `width:28px;height:28px;border-radius:${isTesterLike(c)?'50%':'3px'};`+
+    `background-image:${makeSwatchCSS(c.hex,typeArr,isTesterLike(c))};background-size:cover;flex-shrink:0`;
 
-  const setLabel=c.set==='tester'?'● Tester':'■ Owned';
+  const setLabel=SET_LABELS[c.set]||SET_LABELS.owned;
+  renderEditControls(c);
 
   // Build inline value swatch (monochrome box at same V or L)
   function valueSwatch(level01){
@@ -2214,13 +2272,14 @@ function partsRatio(ws){
 function swatchSpan(hex,c){
   if(c){
     const t=Array.isArray(c.type)?c.type:[c.type||'Normal'];
-    const tester=c.set==='tester';
+    const tester=isTesterLike(c);
     return `<span class="mt-sw" style="background-image:${makeSwatchCSS(c.hex,t,tester)};background-size:cover;border-radius:${tester?'50%':'3px'}"></span>`;
   }
   return `<span class="mt-sw" style="background:${hex}"></span>`;
 }
 
 function renderMatchAdvice(){
+  updateAddFromSwatch();
   const group=document.getElementById('cs-match-group');
   const el=document.getElementById('cs-match');
   if(!currentMatchHex){group.hidden=true;el.innerHTML='';return;}
@@ -2533,12 +2592,13 @@ function parseCSVLine(line){
   return out.map(c=>c.trim());
 }
 
-// Owned column → 'owned' | 'tester' | undefined (blank = not stated)
+// Owned column → 'owned' | 'tester' | 'previous' | undefined (blank = not stated)
 function parseOwned(v){
   const t=(v||'').trim().toLowerCase();
   if(!t) return undefined;
   if(['1','yes','y','true','owned','x','✓'].includes(t)) return 'owned';
   if(['0','no','n','false','tester','not owned'].includes(t)) return 'tester';
+  if(['previous','previously','previously owned','prev','prev. owned','formerly owned','p'].includes(t)) return 'previous';
   return undefined;
 }
 function parseTypes(v){
@@ -2593,14 +2653,15 @@ function paintKey(r){
 }
 
 // Collapse copies: keep the first position, the latest copy's details,
-// and owned if any copy is owned.
+// and the strongest ownership any copy has (owned > previously owned > tester).
 function dedupeRecords(list){
   const pos=new Map(),out=[];
   list.forEach(r=>{
     const k=paintKey(r);
     if(!pos.has(k)){pos.set(k,out.length);out.push({...r});return;}
     const i=pos.get(k), prev=out[i];
-    out[i]={...r,set:(prev.set==='owned'||r.set==='owned')?'owned':'tester'};
+    const rank={owned:3,previous:2,tester:1};
+    out[i]={...r,set:(rank[prev.set]||0)>=(rank[r.set]||0)?prev.set:r.set};
   });
   return {list:out,removed:list.length-out.length};
 }
@@ -2670,7 +2731,7 @@ document.getElementById('export-btn').addEventListener('click',()=>{
   const rows=[colourMode==='lch'?'Name,Brand,Types,Owned,Hex,Lightness,Chroma,Hue_deg':'Name,Brand,Types,Owned,Hex,Hue_deg,Sat_pct,Val_pct'];
   colours.forEach(c=>{
     const typeArr=Array.isArray(c.type)?c.type:[c.type||'Normal'];
-    const ownedFlag=c.set==='owned'?'1':'0';
+    const ownedFlag=c.set==='owned'?'1':c.set==='previous'?'Previous':'0';
     const vals=colourMode==='lch'
       ?[Math.round(c.lch.L*100),Math.round(c.lch.C*C_MAX),Math.round(c.lch.h*360)]
       :[Math.round(c.hsv.h*360),Math.round(c.hsv.s*100),Math.round(c.hsv.v*100)];
@@ -2820,7 +2881,7 @@ function updateFilterCounts(){
     const current=colours.filter(c=>{
       const types=Array.isArray(c.type)?c.type:[c.type||'Normal'];
       if(!types.includes(t)) return false;
-      const setOk=c.set==='tester'||enabledSets.has('owned');
+      const setOk=enabledSets.has(c.set||'owned');
       const brandOk=!c.brand||enabledBrands.has(c.brand);
       return setOk&&brandOk;
     }).length;
@@ -2834,7 +2895,7 @@ function updateFilterCounts(){
       if((c.brand||'')!==brand) return false;
       const types=Array.isArray(c.type)?c.type:[c.type||'Normal'];
       const typeOk=types.every(t=>enabledTypes.has(t));
-      const setOk=c.set==='tester'||enabledSets.has('owned');
+      const setOk=enabledSets.has(c.set||'owned');
       return typeOk&&setOk;
     }).length;
     btn.textContent=current<total?`${brand} ${current}/${total}`:`${brand} ${total}`;
@@ -2846,7 +2907,7 @@ function applyVisibility(){
     const c=colours[i];
     const types=Array.isArray(c.type)?c.type:[c.type||'Normal'];
     const typeOk=types.every(t=>enabledTypes.has(t));
-    const setOk=c.set==='tester'||enabledSets.has('owned');
+    const setOk=enabledSets.has(c.set||'owned');
     const brandOk=!c.brand||enabledBrands.has(c.brand);
     const matchOk=!matchActive||matchVisibleSet.has(i);
     const setShow=!colourSetVisibleSet||colourSetVisibleSet.has(i);
@@ -2875,11 +2936,11 @@ function computeGap(){
       && (!c.brand||enabledBrands.has(c.brand));
   }
   const owned  =colours.filter(c=>c.set==='owned'  &&passesFiltersGap(c));
-  const testers=colours.filter(c=>c.set==='tester'  &&passesFiltersGap(c));
+  const testers=colours.filter(c=>isTesterLike(c)&&passesFiltersGap(c));
 
   const resultsElCheck=document.getElementById('gap-results');
   if(!testers.length){
-    resultsElCheck.innerHTML='<p style="font-size:.72rem;color:var(--muted);padding:8px 14px">No tester paints in current filters.</p>';
+    resultsElCheck.innerHTML='<p style="font-size:.72rem;color:var(--muted);padding:8px 14px">No tester or previously owned paints in current filters.</p>';
     document.getElementById('gap-pagination').innerHTML='';
     return;
   }
@@ -3078,7 +3139,7 @@ function runColourMatch(hex){
   resultsEl.innerHTML='';
   ranked.forEach(({c,dist},rank)=>{
     const mTypeArr=Array.isArray(c.type)?c.type:[c.type||'Normal'];
-    const mIsTester=c.set==='tester';
+    const mIsTester=isTesterLike(c);
     const mSwatchBg=makeSwatchCSS(c.hex,mTypeArr,mIsTester);
     const mRadius=mIsTester?'50%':'3px';
     const pct=Math.round(Math.max(0,(1-dist/maxDist))*100);
@@ -3249,14 +3310,14 @@ refImgWrap.addEventListener('click',e=>{
 const loupe=document.createElement('div');
 loupe.id='dropper-loupe';
 const loupeCanvas=document.createElement('canvas');
-loupeCanvas.width=loupeCanvas.height=88;
+loupeCanvas.width=loupeCanvas.height=192;
 const loupeCtx=loupeCanvas.getContext('2d');
 const loupeHex=document.createElement('div');
 loupeHex.className='loupe-hex';
 loupe.append(loupeCanvas,loupeHex);
 document.body.appendChild(loupe);
-const LOUPE_SRC=11;          // source pixels across the loupe
-const LOUPE_LIFT=78;         // px above the finger
+const LOUPE_SRC=111;         // source pixels across the loupe (odd keeps a centre pixel)
+const LOUPE_LIFT=92;         // px above the finger
 
 function drawLoupe(pt){
   const rect=refImg.getBoundingClientRect();
@@ -3265,22 +3326,30 @@ function drawLoupe(pt){
   const px=Math.floor((cx-rect.left)/rect.width*offCanvas.width);
   const py=Math.floor((cy-rect.top)/rect.height*offCanvas.height);
   const half=Math.floor(LOUPE_SRC/2);
-  loupeCtx.imageSmoothingEnabled=false;
+  const L=loupeCanvas.width, cell=L/LOUPE_SRC, mid=L/2;
+  loupeCtx.imageSmoothingEnabled=true;
   loupeCtx.fillStyle='#000';
-  loupeCtx.fillRect(0,0,88,88);
-  loupeCtx.drawImage(offCanvas,px-half,py-half,LOUPE_SRC,LOUPE_SRC,0,0,88,88);
-  const cell=88/LOUPE_SRC;
-  loupeCtx.strokeStyle='#fff';loupeCtx.lineWidth=2;
-  loupeCtx.strokeRect(half*cell,half*cell,cell,cell);
-  loupeCtx.strokeStyle='#000';loupeCtx.lineWidth=1;
-  loupeCtx.strokeRect(half*cell-1.5,half*cell-1.5,cell+3,cell+3);
+  loupeCtx.fillRect(0,0,L,L);
+  loupeCtx.drawImage(offCanvas,px-half,py-half,LOUPE_SRC,LOUPE_SRC,0,0,L,L);
+  // Crosshair with a gap, plus a box around the sampled pixel
+  const box=Math.max(6,cell), gap=box/2+5, arm=22;
+  [['#000',4],['#fff',2]].forEach(([col,w])=>{
+    loupeCtx.strokeStyle=col;loupeCtx.lineWidth=w;
+    loupeCtx.beginPath();
+    loupeCtx.moveTo(mid-gap-arm,mid);loupeCtx.lineTo(mid-gap,mid);
+    loupeCtx.moveTo(mid+gap,mid);loupeCtx.lineTo(mid+gap+arm,mid);
+    loupeCtx.moveTo(mid,mid-gap-arm);loupeCtx.lineTo(mid,mid-gap);
+    loupeCtx.moveTo(mid,mid+gap);loupeCtx.lineTo(mid,mid+gap+arm);
+    loupeCtx.stroke();
+    loupeCtx.strokeRect(mid-box/2,mid-box/2,box,box);
+  });
   const hex=samplePixel({clientX:cx,clientY:cy});
   loupe.style.borderColor=hex;
   loupeHex.textContent=hex;
   // Keep the loupe on screen: lift above the finger, or drop below near the top edge
   let ly=pt.clientY-LOUPE_LIFT;
-  if(ly<56) ly=pt.clientY+LOUPE_LIFT;
-  const lx=Math.max(56,Math.min(window.innerWidth-56,pt.clientX));
+  if(ly<68) ly=pt.clientY+LOUPE_LIFT;
+  const lx=Math.max(68,Math.min(window.innerWidth-68,pt.clientX));
   loupe.style.left=lx+'px';
   loupe.style.top=ly+'px';
   loupe.style.display='block';
@@ -3357,7 +3426,7 @@ function normaliseRecord(r){
   if(!r||typeof r.hex!=='string'||!/^#[0-9a-f]{6}/i.test(r.hex)) return null;
   const t=Array.isArray(r.type)?r.type:(r.type?[r.type]:['Normal']);
   return {name:String(r.name||'Unnamed'),brand:String(r.brand||''),hex:r.hex.slice(0,7).toLowerCase(),
-    type:t.map(String),set:r.set==='tester'?'tester':'owned'};
+    type:t.map(String),set:PAINT_SETS.includes(r.set)?r.set:'owned'};
 }
 // Keys by brand+name; repeats of the same name get #2, #3…
 function keyed(list){
@@ -3429,7 +3498,7 @@ async function writeGist(id,list){
 
 // Replace the in-app palette with a new list, keeping the selection if possible
 function replacePalette(list,opts={}){
-  const selKey=activeIndex>=0&&colours[activeIndex]?`${colours[activeIndex].brand}|${colours[activeIndex].name}`:null;
+  const selKey=activeIndex>=0&&colours[activeIndex]?paintKey(colours[activeIndex]):null;
   pointMeshes.forEach((m,i)=>{
     scene.remove(m);scene.remove(outlineMeshes[i]);
     if(m.material.map)m.material.map.dispose();
@@ -3442,7 +3511,7 @@ function replacePalette(list,opts={}){
   list.forEach(r=>addColour({...r,type:[...r.type]}));
   rebuildBrandFilters();updateFilterCounts();renderList();applyVisibility();computeGap();
   if(currentMatchHex) runColourMatch(currentMatchHex);
-  if(selKey){const i=colours.findIndex(c=>`${c.brand}|${c.name}`===selKey);if(i>=0)highlightItem(i);}
+  if(selKey){const i=colours.findIndex(c=>paintKey(c)===selKey);if(i>=0)highlightItem(i);else resetColourAnalysis();}
   if(!opts.push) suppressNextPush=true;
   dbSave();
 }
@@ -3593,6 +3662,125 @@ document.getElementById('sd-disconnect').addEventListener('click',()=>{
   showSyncError('');
   showSdPanel('setup');
 });
+
+// ═══════════════════════════════════
+// EDITING — paint status and delete (Colour Analysis)
+// ═══════════════════════════════════
+const csEdit=document.getElementById('cs-edit');
+const csDelete=document.getElementById('cs-delete');
+let deleteArmed=false,deleteTimer=null;
+
+function disarmDelete(){
+  deleteArmed=false;clearTimeout(deleteTimer);
+  csDelete.classList.remove('confirm');csDelete.textContent='Delete paint';
+}
+function renderEditControls(c){
+  csEdit.hidden=false;
+  csEdit.querySelectorAll('.cs-edit-sets button').forEach(b=>
+    b.setAttribute('aria-checked',b.dataset.set===(c.set||'owned')?'true':'false'));
+  disarmDelete();
+}
+function resetColourAnalysis(){
+  csEdit.hidden=true;disarmDelete();
+  document.getElementById('cs-swatch').style.cssText='width:28px;height:28px;border-radius:3px;flex-shrink:0;margin-top:2px';
+  const nm=document.getElementById('cs-name');
+  nm.style.color='var(--muted)';nm.innerHTML='Select a paint to analyse';
+  document.querySelectorAll('#cs-groups .cs-group > div[id]').forEach(d=>{if(d.id!=='cs-match')d.innerHTML='';});
+  csIndices=[];
+  renderMatchAdvice();
+}
+
+// Change status in place: swap the swatch shape, then refresh lists and filters
+function setPaintSet(i,set){
+  const c=colours[i];
+  if(!c||c.set===set)return;
+  c.set=set;
+  const round=isTesterLike(c);
+  pointMeshes[i].geometry=round?cGeo:sGeo;
+  outlineMeshes[i].geometry=round?outlineCircleGeo:outlineGeo;
+  renderList();updateFilterCounts();applyVisibility();computeGap();
+  if(currentMatchHex) runColourMatch(currentMatchHex);
+  computeColourSets(i);
+  scheduleSave();
+}
+
+csEdit.querySelector('.cs-edit-sets').addEventListener('click',e=>{
+  const b=e.target.closest('button[data-set]');
+  if(b&&activeIndex>=0) setPaintSet(activeIndex,b.dataset.set);
+});
+csDelete.addEventListener('click',()=>{
+  if(activeIndex<0||!colours[activeIndex])return;
+  if(!deleteArmed){
+    deleteArmed=true;
+    csDelete.classList.add('confirm');csDelete.textContent='Tap again to delete';
+    deleteTimer=setTimeout(disarmDelete,3000);
+    return;
+  }
+  const gone=colours[activeIndex];
+  const list=snapshot().filter((_,k)=>k!==activeIndex);
+  disarmDelete();
+  replacePalette(list,{push:true});   // selection no longer exists → panel resets
+  showToast(`Deleted ${gone.name}${gone.brand?' ('+gone.brand+')':''}`);
+});
+
+// ═══════════════════════════════════
+// ADD PAINT FROM SWATCH (Colour Match)
+// ═══════════════════════════════════
+const afs=document.getElementById('afs'), afsForm=document.getElementById('afs-form');
+const afsOpen=document.getElementById('afs-open');
+let afsSet='owned';
+function updateAddFromSwatch(){
+  const hex=currentMatchHex?currentMatchHex.slice(0,7).toLowerCase():null;
+  afs.hidden=!hex;
+  if(!hex){afsForm.hidden=true;afsOpen.hidden=false;return;}
+  document.getElementById('afs-swatch').style.background=hex;
+  document.getElementById('afs-hex').textContent=hex;
+}
+afsOpen.addEventListener('click',()=>{
+  afsOpen.hidden=true;afsForm.hidden=false;
+  document.getElementById('afs-brands').innerHTML=
+    [...new Set(colours.map(c=>c.brand).filter(Boolean))].sort().map(b=>`<option value="${b.replace(/"/g,'&quot;')}">`).join('');
+  const n=document.getElementById('afs-name');n.focus({preventScroll:true});
+  afsForm.scrollIntoView({block:'nearest',behavior:'smooth'});
+});
+document.getElementById('afs-cancel').addEventListener('click',()=>{afsForm.hidden=true;afsOpen.hidden=false;});
+document.getElementById('afs-types').addEventListener('click',e=>{
+  const t=e.target.closest('span[data-type]');if(!t)return;
+  t.classList.toggle('on');
+});
+document.getElementById('afs-sets').addEventListener('click',e=>{
+  const b=e.target.closest('button[data-set]');if(!b)return;
+  afsSet=b.dataset.set;
+  document.querySelectorAll('#afs-sets button').forEach(x=>x.setAttribute('aria-checked',x===b?'true':'false'));
+});
+document.getElementById('afs-add').addEventListener('click',()=>{
+  if(!currentMatchHex)return;
+  const hex=currentMatchHex.slice(0,7).toLowerCase();
+  const nameEl=document.getElementById('afs-name');
+  const name=nameEl.value.trim()||'Custom';
+  const brand=document.getElementById('afs-brand').value.trim();
+  const types=[...document.querySelectorAll('#afs-types span.on')].map(s=>s.dataset.type);
+  const rec={name,brand,hex,type:types.length?types:['Normal'],set:afsSet};
+  const k=paintKey(rec);
+  const existing=colours.findIndex(c=>paintKey(c)===k);
+  if(existing>=0){
+    // Same name, brand and types already in the palette: update its colour and status
+    const shownName=colours[existing].name;
+    const list=snapshot();list[existing]={...list[existing],hex,set:afsSet};
+    replacePalette(list,{push:true});
+    showToast(`Updated ${shownName} to ${hex}`);
+  } else {
+    addColour({...rec,type:[...rec.type]});
+    rebuildBrandFilters();updateFilterCounts();renderList();applyVisibility();computeGap();
+    runColourMatch(currentMatchHex);
+    scheduleSave();
+    showToast(`Added ${name}${brand?' ('+brand+')':''}`);
+  }
+  // Keep brand, types and status for the next swatch; clear the name
+  nameEl.value='';
+  afsForm.hidden=true;afsOpen.hidden=false;
+});
+document.getElementById('afs-name').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('afs-add').click();});
 
 // ═══════════════════════════════════
 // MOBILE LAYOUT: header menu, bottom sheet, touch hints
