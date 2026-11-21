@@ -358,6 +358,47 @@ canvas{display:block;width:100%!important;height:100%!important}
 }
 .cs-row:hover{opacity:.75}
 .cs-row .swatch{width:24px;height:24px;flex-shrink:0}
+/* Match-the-target advice */
+#cs-match-group{
+  margin:0 0 14px;padding:10px 10px 8px;border:1px solid var(--border);
+  border-left:3px solid var(--accent);background:rgba(0,0,0,.025);
+}
+.mt-head{display:flex;align-items:center;gap:8px;font-size:.72rem}
+.mt-sw{width:24px;height:24px;border-radius:3px;flex-shrink:0;border:1px solid rgba(0,0,0,.15)}
+.mt-arrow{color:var(--muted);font-size:.8rem}
+.mt-head .mt-label{line-height:1.35;min-width:0}
+.mt-head .mt-label b{font-size:.76rem}
+.mt-advice{font-size:.76rem;line-height:1.45;margin:8px 0 4px;color:var(--ink)}
+.mt-advice ul{margin:3px 0 0;padding-left:16px}
+.mt-sub{font-family:'Courier Prime',monospace;font-size:.66rem;color:var(--muted);margin:10px 0 3px}
+.mt-mix{
+  display:grid;grid-template-columns:1fr auto;grid-template-areas:"chain de" "what what";
+  align-items:center;gap:4px 8px;padding:7px 0;border-top:1px solid var(--border);font-size:.72rem;
+}
+.mt-mix .mt-chain{grid-area:chain}
+.mt-mix .mt-what{grid-area:what}
+.mt-mix .mt-de{grid-area:de}
+.mt-mix:first-of-type{border-top:none}
+.mt-chain{display:flex;align-items:center;gap:3px}
+.mt-chain .mt-sw{width:18px;height:18px}
+.mt-mix .mt-what{line-height:1.35;min-width:0}
+.mt-mix .mt-what small{color:var(--muted);font-size:.64rem}
+.mt-mix .mt-de{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;font-size:.68rem}
+.mt-tip{
+  display:flex;align-items:center;gap:8px;margin-top:8px;padding:6px 8px;
+  background:var(--paper);border:1px dashed var(--border);font-size:.7rem;cursor:pointer;
+}
+.mt-tip .mt-sw{width:18px;height:18px}
+.mt-tip:hover{border-color:var(--ink)}
+.mt-note{font-size:.62rem;color:var(--muted);margin-top:6px;line-height:1.4}
+.cs-codes{
+  display:grid;grid-template-columns:auto repeat(3,auto);justify-content:start;
+  column-gap:12px;row-gap:1px;margin-top:6px;padding-top:5px;
+  border-top:1px solid var(--border);font-size:.72rem;color:var(--ink);
+  font-variant-numeric:tabular-nums;
+}
+.cs-codes span{color:var(--muted)}
+.cs-codes b{text-align:right}
 
 #github-block{
   padding:12px 14px;border-top:2px solid var(--ink);
@@ -384,6 +425,46 @@ canvas{display:block;width:100%!important;height:100%!important}
 .panel-tab:hover:not(.active){color:var(--ink)}
 .panel-page{display:none}
 .panel-page.active{display:block}
+
+/* ── Gist sync ── */
+.sync-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-left:5px;background:transparent;vertical-align:middle}
+body[data-sync="ok"] .sync-dot{background:#3a8a4f}
+body[data-sync="busy"] .sync-dot{background:#d4a017}
+body[data-sync="error"] .sync-dot,body[data-sync="offline"] .sync-dot{background:var(--accent)}
+#more-btn{position:relative}
+body[data-sync="error"] #more-btn::after,body[data-sync="offline"] #more-btn::after{
+  content:'';position:absolute;top:4px;right:4px;width:7px;height:7px;border-radius:50%;background:var(--accent)}
+#sync-dialog{
+  margin:auto;
+  width:min(400px,calc(100vw - 24px));max-height:calc(100dvh - 24px);overflow:auto;
+  border:2px solid var(--ink);border-radius:2px;padding:18px 20px 20px;
+  background:var(--paper);color:var(--ink);box-shadow:0 12px 40px rgba(0,0,0,.35);
+}
+#sync-dialog::backdrop{background:rgba(0,0,0,.45)}
+#sync-dialog h2{font-family:'Bebas Neue',sans-serif;font-weight:400;font-size:1.6rem;letter-spacing:.05em;margin:0 0 6px}
+.sd-close-row{position:absolute;top:6px;right:8px;margin:0}
+.sd-x{background:none;border:none;font-size:1.6rem;line-height:1;cursor:pointer;color:var(--muted);padding:4px 8px}
+.sd-p{font-size:.82rem;line-height:1.5;margin:0 0 12px}
+.sd-label{display:block;font-family:'Courier Prime',monospace;font-size:.72rem;margin:12px 0 4px}
+.sd-label span{color:var(--muted)}
+#sync-dialog input{width:100%;padding:10px;border:1.5px solid var(--border);border-radius:2px;background:#fff;
+  font-family:'Courier Prime',monospace;font-size:16px;color:var(--ink)}
+#sync-dialog input:focus{outline:none;border-color:var(--ink)}
+.sd-hint{font-size:.7rem;color:var(--muted);line-height:1.45;margin:5px 0 0}
+.sd-hint a{color:var(--ink)}
+.sd-primary,.sd-secondary{display:block;width:100%;margin-top:14px;padding:11px;border-radius:2px;cursor:pointer;
+  font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:.08em}
+.sd-primary{background:var(--ink);color:var(--paper);border:2px solid var(--ink)}
+.sd-secondary{background:transparent;color:var(--ink);border:2px solid var(--ink)}
+.sd-primary:disabled{opacity:.5;cursor:wait}
+.sd-small{display:inline-block;width:auto;margin:0;padding:6px 12px;font-size:.85rem}
+.sd-link{display:block;margin:12px auto 0;background:none;border:none;color:var(--muted);text-decoration:underline;
+  cursor:pointer;font-size:.75rem;padding:6px}
+.sd-status{display:flex;align-items:center;gap:6px;font-size:.85rem;margin:4px 0 6px}
+.sd-status .sync-dot{margin:0;width:9px;height:9px}
+.sd-idrow{display:flex;gap:8px;align-items:center}
+.sd-idrow code{flex:1;min-width:0;overflow-wrap:anywhere;font-size:.78rem;background:#fff;border:1px solid var(--border);padding:7px 8px}
+.sd-error{margin:14px 0 0;padding:8px 10px;border-left:3px solid var(--accent);background:#fce8e6;font-size:.76rem;line-height:1.45}
 
 /* ════════════════════════════════════════════════
    MOBILE & TOUCH
@@ -552,10 +633,52 @@ header{position:relative;padding-left:max(18px,env(safe-area-inset-left));paddin
       </svg>
       EXPORT
     </button>
+
+    <button class="icon-btn" id="sync-btn" title="Sync palette between devices">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M13.5 6.5A5.5 5.5 0 003.4 4.6M2.5 9.5a5.5 5.5 0 0010.1 1.9"/>
+        <path d="M3 1.8v3h3M13 14.2v-3h-3"/>
+      </svg>
+      SYNC<span class="sync-dot" aria-hidden="true"></span>
+    </button>
     </div>
 
   </div>
 </header>
+
+<dialog id="sync-dialog" aria-labelledby="sync-title">
+  <form method="dialog" class="sd-close-row"><button class="sd-x" aria-label="Close">×</button></form>
+  <h2 id="sync-title">Sync between devices</h2>
+
+  <div id="sd-setup">
+    <p class="sd-p">Your palette is kept in a private GitHub Gist, and every device you connect stays in step with it.</p>
+    <label class="sd-label" for="sd-token">GitHub token <span>(gist access only)</span></label>
+    <input id="sd-token" type="password" autocomplete="off" spellcheck="false" placeholder="ghp_… or github_pat_…">
+    <p class="sd-hint"><a href="https://github.com/settings/tokens/new?scopes=gist&amp;description=PaintSpace" target="_blank" rel="noopener">Create a token</a> with only the <b>gist</b> box ticked. It's stored in this browser only.</p>
+    <label class="sd-label" for="sd-gist">Gist ID or link <span>(other devices)</span></label>
+    <input id="sd-gist" type="text" autocomplete="off" spellcheck="false" placeholder="Leave blank on your first device">
+    <p class="sd-hint">First device: leave blank to create a new private Gist. Other devices: paste the ID shown on the first one.</p>
+    <button id="sd-connect" class="sd-primary">Connect</button>
+  </div>
+
+  <div id="sd-choose" hidden>
+    <p class="sd-p">That Gist already has <b id="sd-remote-count">0</b> paints, and this device has <b id="sd-local-count">0</b>. What should happen?</p>
+    <button id="sd-use-remote" class="sd-primary">Use the Gist's list on this device</button>
+    <button id="sd-merge" class="sd-secondary">Combine both lists</button>
+    <button id="sd-cancel-choose" class="sd-link">Cancel</button>
+  </div>
+
+  <div id="sd-connected" hidden>
+    <p class="sd-status"><span class="sync-dot"></span><span id="sd-status-text">Synced</span></p>
+    <label class="sd-label">Gist ID <span>(paste this on your other devices)</span></label>
+    <div class="sd-idrow"><code id="sd-gist-id"></code><button id="sd-copy" class="sd-secondary sd-small">Copy</button></div>
+    <p class="sd-hint">Changes sync automatically when you edit the palette and whenever PaintSpace is reopened. <a id="sd-gist-link" href="#" target="_blank" rel="noopener">View the Gist</a></p>
+    <button id="sd-sync-now" class="sd-primary">Sync now</button>
+    <button id="sd-disconnect" class="sd-link">Disconnect this device</button>
+  </div>
+
+  <p id="sd-error" class="sd-error" hidden></p>
+</dialog>
 
 <div id="canvas-wrap">
   <canvas id="c"></canvas>
@@ -700,6 +823,10 @@ header{position:relative;padding-left:max(18px,env(safe-area-inset-left));paddin
         </div>
       </div>
       <div id="cs-groups" style="padding:0 14px 14px">
+        <div id="cs-match-group" hidden>
+          <div class="cs-group-label">Match the Colour Match target</div>
+          <div id="cs-match"></div>
+        </div>
         <div class="cs-group">
           <div class="cs-group-label">Nearest 5</div>
           <div id="cs-nearest"></div>
@@ -813,7 +940,7 @@ const INITIAL=[
   {name:"Fey Pink",            brand:"Army Painter", hex:"#db98b9", type:["Air"]},
   {name:"Mithril",             brand:"Army Painter", hex:"#909195", type:["Metallic"]},
   {name:"Macragge Blue",       brand:"Citadel",      hex:"#0d407f", type:["Normal"]},
-  {name:"Warplock Bronze",     brand:"Citadel",      hex:"#624a4a", type:["Normal"]},
+  {name:"Warplock Bronze",     brand:"Citadel",      hex:"#624a4a", type:["Metallic"]},
   {name:"Flash Gitz Yellow",   brand:"Citadel",      hex:"#fef200", type:["Normal"]},
   {name:"Auric Armour Gold",   brand:"Citadel",      hex:"#e1a533", type:["Metallic"]},
   {name:"Stormhost Silver",    brand:"Citadel",      hex:"#afbdc0", type:["Metallic"]},
@@ -918,6 +1045,15 @@ function rgbToHsv([r,g,b]){
   return{h,s:max>0?d/max:0,v:max};
 }
 function hexToHsv(hex){return rgbToHsv(hexToRgb(hex));}
+
+// ── HSL ───────────────────────────────────────────────
+function rgbToHsl([r,g,b]){
+  const max=Math.max(r,g,b),min=Math.min(r,g,b),d=max-min;
+  const l=(max+min)/2;
+  const s=d===0?0:d/(1-Math.abs(2*l-1));
+  return{h:rgbToHsv([r,g,b]).h,s,l};
+}
+function hexToHsl(hex){return rgbToHsl(hexToRgb(hex));}
 
 // ── Colour mode ───────────────────────────────────────
 let colourMode='hsv';
@@ -1357,7 +1493,7 @@ function dbSave(){
       type:c.type, set:c.set||'owned'
     });
   });
-  tx.oncomplete=()=>showSaved();
+  tx.oncomplete=()=>{showSaved();if(typeof onLocalSaved==='function')onLocalSaved();};
 }
 
 function dbLoad(){
@@ -1396,9 +1532,28 @@ function scheduleSave(){
 }
 
 // Initialise: load from DB or fall back to INITIAL
+// Corrections applied to palettes saved before a built-in entry was fixed.
+// Keyed by "brand|name"; only listed fields are overwritten.
+const DATA_FIXES={
+  'Citadel|Warplock Bronze':{type:['Metallic']},
+};
+function applyDataFixes(list){
+  let changed=false;
+  list.forEach(c=>{
+    const fix=DATA_FIXES[`${c.brand||''}|${c.name}`];
+    if(!fix)return;
+    for(const [k,v] of Object.entries(fix)){
+      if(JSON.stringify(c[k])!==JSON.stringify(v)){c[k]=v;changed=true;}
+    }
+  });
+  return changed;
+}
+
 openDB().then(()=>dbLoad()).then(saved=>{
   if(saved.length>0){
+    const fixed=applyDataFixes(saved);
     saved.sort((a,b)=>a.id-b.id).forEach(addColour);
+    if(fixed) setTimeout(()=>scheduleSave(),0);
   } else {
     INITIAL.forEach(addColour);
   }
@@ -1413,6 +1568,7 @@ function postLoad(){
   updateFilterCounts();
   renderList();
   computeGap();
+  if(typeof syncOnStartup==='function') syncOnStartup();
 }
 
 // ── Filter state — must be declared before rebuildBrandFilters is called ──────
@@ -1868,11 +2024,21 @@ function computeColourSets(idx){
       `H <b>${Math.round(h*360)}°</b>`;
   }
 
+  // Plain HSV + HSL readout, shown whichever colour space the view is using
+  const hv=hexToHsv(c.hex), hl=hexToHsl(c.hex);
+  const deg=x=>`${Math.round(x*360)%360}°`, pct=x=>`${Math.round(x*100)}%`;
+  const codesBlock=
+    `<div class="cs-codes">`+
+      `<span>HSV</span><b>${deg(hv.h)}</b><b>${pct(hv.s)}</b><b>${pct(hv.v)}</b>`+
+      `<span>HSL</span><b>${deg(hl.h)}</b><b>${pct(hl.s)}</b><b>${pct(hl.l)}</b>`+
+    `</div>`;
+
   document.getElementById('cs-name').innerHTML=
     `<div style="font-weight:700;font-size:.82rem;color:var(--ink)">${c.name}</div>`+
     `<div style="font-size:.72rem;color:var(--ink)">${c.brand||''} &middot; ${typeArr.join(', ')} &middot; ${setLabel}</div>`+
     `<div style="font-size:.72rem;color:var(--ink);margin-top:3px">${chromaLine}</div>`+
-    `<div style="font-size:.72rem;color:var(--ink)">${valueLine} &nbsp; <span style="font-family:monospace">${c.hex}</span></div>`;
+    `<div style="font-size:.72rem;color:var(--ink)">${valueLine} &nbsp; <span style="font-family:monospace">${c.hex}</span></div>`+
+    codesBlock;
 
   const srcLab=hexToLab(c.hex);
 
@@ -1939,7 +2105,230 @@ function computeColourSets(idx){
     ...toneLighter.map(r=>r.i),
     ...toneDarker.map(r=>r.i),
   ];
+  renderMatchAdvice();
 }
+
+
+// ═══════════════════════════════════
+// MATCH ADVICE — how to move a paint towards the Colour Match target
+// ═══════════════════════════════════
+// Mixing is estimated with single-constant Kubelka–Munk per linear-RGB
+// channel: pigments combine by absorption/scattering rather than light,
+// so blue + yellow trends green and a little black darkens strongly.
+const MIX_EXCLUDE_TYPES=new Set(['Metallic','Wash','Technical']);
+
+function hexToLin(hex){return hexToRgb(hex.slice(0,7)).map(linearize);}
+function linToLab([r,g,b]){
+  return xyzToLab([
+    r*0.4124564+g*0.3575761+b*0.1804375,
+    r*0.2126729+g*0.7151522+b*0.0721750,
+    r*0.0193339+g*0.1191920+b*0.9503041
+  ]);
+}
+function linToHex(lin){
+  const enc=c=>{c=Math.max(0,Math.min(1,c));return c<=0.0031308?12.92*c:1.055*Math.pow(c,1/2.4)-0.055;};
+  return '#'+lin.map(c=>Math.round(enc(c)*255).toString(16).padStart(2,'0')).join('');
+}
+const kmKS=R=>{R=Math.max(0.002,Math.min(0.998,R));return (1-R)*(1-R)/(2*R);};
+const kmR=ks=>1+ks-Math.sqrt(ks*ks+2*ks);
+// parts: [{ks:[3], w}] with weights summing to 1
+function kmMix(parts){
+  const out=[0,0,0];
+  for(let ch=0;ch<3;ch++){
+    let ks=0; for(const p of parts) ks+=p.w*p.ks[ch];
+    out[ch]=kmR(ks);
+  }
+  return out;
+}
+function labDE(a,b){return Math.sqrt((a.L-b.L)**2+(a.a-b.a)**2+(a.b-b.b)**2);}
+
+function hueFamily(hex){
+  const {h,s,v}=hexToHsv(hex.slice(0,7));
+  if(s<0.12||v<0.12) return 'grey';
+  const d=h*360;
+  if(d<15||d>=335) return 'red';
+  if(d<40) return 'orange';
+  if(d<65) return 'yellow';
+  if(d<90) return 'yellow-green';
+  if(d<150) return 'green';
+  if(d<190) return 'turquoise';
+  if(d<250) return 'blue';
+  if(d<285) return 'violet';
+  return 'magenta';
+}
+
+// Differences from → to in the current colour space's own terms
+function colourDeltas(fromHex,toHex){
+  const f=hexToLch(fromHex.slice(0,7)), t=hexToLch(toHex.slice(0,7));
+  const hueOk=f.C>8&&t.C>8;                  // hue is meaningless for near-greys
+  let dVal,dSat,dHue,names;
+  if(colourMode==='lch'){
+    dVal=t.L-f.L; dSat=t.C-f.C;
+    dHue=((t.h-f.h)*360+540)%360-180;
+    names={val:'lightness',sat:'chroma'};
+  } else {
+    const a=hexToHsv(fromHex.slice(0,7)), b=hexToHsv(toHex.slice(0,7));
+    dVal=(b.v-a.v)*100; dSat=(b.s-a.s)*100;
+    dHue=((b.h-a.h)*360+540)%360-180;
+    names={val:'value',sat:'saturation'};
+  }
+  return {dVal:Math.round(dVal),dSat:Math.round(dSat),dHue:Math.round(dHue),hueOk,names,
+          family:hueFamily(toHex)};
+}
+
+function adjustmentLines(fromHex,toHex){
+  const d=colourDeltas(fromHex,toHex), lines=[];
+  if(Math.abs(d.dVal)>=3)
+    lines.push(`${d.dVal>0?'Raise':'Lower'} ${d.names.val} by <b>${Math.abs(d.dVal)}</b> (${d.dVal>0?'lighter':'darker'})`);
+  if(Math.abs(d.dSat)>=4)
+    lines.push(`${d.dSat>0?'Increase':'Reduce'} ${d.names.sat} by <b>${Math.abs(d.dSat)}</b> (${d.dSat>0?'more vivid':'more muted'})`);
+  if(d.hueOk&&Math.abs(d.dHue)>=5)
+    lines.push(`Shift hue <b>${Math.abs(d.dHue)}°</b> towards <b>${d.family}</b>`);
+  return lines;
+}
+
+// Short "what this addition does" tag, e.g. "darker · towards blue"
+function effectTag(fromHex,toHex){
+  const d=colourDeltas(fromHex,toHex), bits=[];
+  if(Math.abs(d.dVal)>=3) bits.push(d.dVal>0?'lighter':'darker');
+  if(Math.abs(d.dSat)>=4) bits.push(d.dSat>0?'more vivid':'more muted');
+  if(d.hueOk&&Math.abs(d.dHue)>=5) bits.push('towards '+d.family);
+  return bits.join(' · ');
+}
+
+// Small whole-number ratio for a set of weights, e.g. [0.75,0.25] → "3 : 1"
+function partsRatio(ws){
+  for(let n=2;n<=12;n++){
+    const p=ws.map(w=>Math.round(w*n));
+    if(p.every(x=>x>=1)&&p.reduce((a,b)=>a+b,0)===n&&ws.every((w,k)=>Math.abs(p[k]/n-w)<=0.04))
+      return p.join(' : ');
+  }
+  return ws.map(w=>Math.round(w*20)).join(' : ');
+}
+
+function swatchSpan(hex,c){
+  if(c){
+    const t=Array.isArray(c.type)?c.type:[c.type||'Normal'];
+    const tester=c.set==='tester';
+    return `<span class="mt-sw" style="background-image:${makeSwatchCSS(c.hex,t,tester)};background-size:cover;border-radius:${tester?'50%':'3px'}"></span>`;
+  }
+  return `<span class="mt-sw" style="background:${hex}"></span>`;
+}
+
+function renderMatchAdvice(){
+  const group=document.getElementById('cs-match-group');
+  const el=document.getElementById('cs-match');
+  if(!currentMatchHex){group.hidden=true;el.innerHTML='';return;}
+  const target=currentMatchHex.slice(0,7);
+  const tLab=hexToLab(target);
+
+  // Starting paint: the selected paint, else the closest match in the selection
+  let baseIdx=activeIndex, baseWhy='selected';
+  if(baseIdx<0||!colours[baseIdx]){
+    const best=colours.map((c,i)=>({i,c,d:deltaE(c.hex,target)}))
+      .filter(({c})=>passesFilters(c)).sort((a,b)=>a.d-b.d)[0];
+    if(!best){group.hidden=false;el.innerHTML='<p class="mt-note">No paints in the current selection.</p>';return;}
+    baseIdx=best.i; baseWhy='closest match';
+  }
+  const base=colours[baseIdx];
+  const baseLin=hexToLin(base.hex), baseKS=baseLin.map(kmKS);
+  const baseDE=labDE(linToLab(baseLin),tLab);
+
+  let html=
+    `<div class="mt-head">${swatchSpan(base.hex,base)}<span class="mt-arrow">→</span>${swatchSpan(target)}`+
+    `<div class="mt-label"><b>${base.name}</b> <span style="color:var(--muted)">(${baseWhy})</span><br>`+
+    `to target <span style="font-family:monospace">${target}</span> · ΔE ${baseDE.toFixed(1)}</div></div>`;
+
+  if(baseDE<3){
+    html+=`<div class="mt-advice">Already a very close match — no adjustment needed.</div>`;
+    group.hidden=false; el.innerHTML=html; return;
+  }
+
+  // If another paint in the selection is a much better starting point, say so
+  if(baseWhy==='selected'){
+    const alt=colours.map((c,i)=>({i,c,d:deltaE(c.hex,target)}))
+      .filter(({i,c})=>i!==baseIdx&&passesFilters(c)).sort((a,b)=>a.d-b.d)[0];
+    if(alt&&alt.d<baseDE-5){
+      html+=`<div class="mt-tip" data-idx="${alt.i}">${swatchSpan(alt.c.hex,alt.c)}`+
+        `<span><b>${alt.c.name}</b> is a closer start (ΔE ${alt.d.toFixed(1)}) — tap to use it</span></div>`;
+    }
+  }
+
+  const lines=adjustmentLines(base.hex,target);
+  html+=`<div class="mt-advice">To match, the paint needs to:`+
+    (lines.length?`<ul>${lines.map(l=>`<li>${l}</li>`).join('')}</ul>`:` <span style="color:var(--muted)">only a subtle shift (small changes on every axis).</span>`)+
+    `</div>`;
+
+  // ── Search mixes from the current selection ──
+  const cands=colours.map((c,i)=>({i,c}))
+    .filter(({i,c})=>i!==baseIdx&&passesFilters(c)&&c.hex.toLowerCase()!==base.hex.toLowerCase())
+    .filter(({c})=>(Array.isArray(c.type)?c.type:[c.type||'Normal']).every(t=>!MIX_EXCLUDE_TYPES.has(t)))
+    .map(o=>({...o,ks:hexToLin(o.c.hex).map(kmKS)}));
+
+  // Keep the starting paint as the main component; beyond this the
+  // "addition" is really a different base paint.
+  const STEP=0.05, MAX_ADD=0.5, MAX_ADD_PAIR=0.5;
+  const singles=cands.map(o=>{
+    let best={de:Infinity,w:0,lin:null};
+    for(let w=STEP;w<=MAX_ADD+1e-9;w+=STEP){
+      const lin=kmMix([{ks:baseKS,w:1-w},{ks:o.ks,w}]);
+      const de=labDE(linToLab(lin),tLab);
+      if(de<best.de) best={de,w,lin};
+    }
+    return {...o,...best};
+  }).sort((a,b)=>a.de-b.de);
+
+  const needed=Math.max(2,baseDE*0.15);
+  const goodSingles=singles.filter(s=>s.de<=baseDE-needed).slice(0,3);
+
+  // Best two-paint addition, drawn from the strongest single candidates
+  let pair=null;
+  const pool=singles.slice(0,10);
+  for(let a=0;a<pool.length;a++) for(let b=a+1;b<pool.length;b++){
+    for(let w1=STEP;w1<=MAX_ADD+1e-9;w1+=STEP) for(let w2=STEP;w1+w2<=MAX_ADD_PAIR+1e-9;w2+=STEP){
+      const lin=kmMix([{ks:baseKS,w:1-w1-w2},{ks:pool[a].ks,w:w1},{ks:pool[b].ks,w:w2}]);
+      const de=labDE(linToLab(lin),tLab);
+      if(!pair||de<pair.de) pair={de,lin,parts:[{o:pool[a],w:w1},{o:pool[b],w:w2}]};
+    }
+  }
+  const bestSingleDE=goodSingles.length?goodSingles[0].de:baseDE;
+  if(!pair||pair.de>baseDE-needed||pair.de>bestSingleDE-1.5) pair=null;
+
+  if(!goodSingles.length&&!pair){
+    html+=`<div class="mt-sub">Mixes from your selection</div>`+
+      `<p class="mt-note" style="margin-top:2px">Nothing in the current selection moves it meaningfully closer. Try turning on more brands or types, or pick a different starting paint.</p>`;
+    group.hidden=false; el.innerHTML=html; return;
+  }
+
+  html+=`<div class="mt-sub">Mixes from your selection (best first)</div><div>`;
+  const rows=[];
+  goodSingles.forEach(s=>rows.push({
+    de:s.de,lin:s.lin,
+    chain:swatchSpan(base.hex,base)+'+'+swatchSpan(s.c.hex,s.c),
+    what:`Add <b>~${Math.round(s.w*100)}%</b> ${s.c.name} <small>${s.c.brand||''}</small>`+
+         `<br><small>${partsRatio([1-s.w,s.w])} · ${effectTag(base.hex,linToHex(s.lin))||'fine adjustment'}</small>`
+  }));
+  if(pair){
+    const [p1,p2]=pair.parts;
+    rows.push({
+      de:pair.de,lin:pair.lin,
+      chain:swatchSpan(base.hex,base)+'+'+swatchSpan(p1.o.c.hex,p1.o.c)+'+'+swatchSpan(p2.o.c.hex,p2.o.c),
+      what:`Add <b>~${Math.round(p1.w*100)}%</b> ${p1.o.c.name} + <b>~${Math.round(p2.w*100)}%</b> ${p2.o.c.name}`+
+           `<br><small>${partsRatio([1-p1.w-p2.w,p1.w,p2.w])} · ${effectTag(base.hex,linToHex(pair.lin))||'fine adjustment'}</small>`
+    });
+  }
+  rows.sort((a,b)=>a.de-b.de).forEach(r=>{
+    html+=`<div class="mt-mix"><span class="mt-chain">${r.chain}<span class="mt-arrow">=</span>${swatchSpan(linToHex(r.lin))}</span>`+
+      `<div class="mt-what">${r.what}</div>`+
+      `<div class="mt-de">ΔE ${baseDE.toFixed(0)} → <b>${r.de.toFixed(0)}</b></div></div>`;
+  });
+  html+=`</div><p class="mt-note">Ratios are by volume, starting paint first. Mixes are estimated with a simple pigment model, so treat them as a starting point and adjust by eye.</p>`;
+  group.hidden=false; el.innerHTML=html;
+}
+document.getElementById('cs-match').addEventListener('click',e=>{
+  const tip=e.target.closest('.mt-tip');
+  if(tip) highlightItem(+tip.dataset.idx);
+});
 
 // Show on cube button
 let colourSetShowActive=false;
@@ -2524,6 +2913,7 @@ function runColourMatch(hex){
   currentMatchHex=null;
   if(!/^#[0-9a-fA-F]{6}([0-9a-fA-F]{2})?$/.test(hex)){
     applyVisibility();
+    renderMatchAdvice();
     return;
   }
 
@@ -2591,6 +2981,7 @@ function runColourMatch(hex){
     div.addEventListener('click',()=>highlightItem(colours.indexOf(c)));
     resultsEl.appendChild(div);
   });
+  renderMatchAdvice();
 }
 
 const matchHexEl=document.getElementById('match-hex');
@@ -2627,6 +3018,7 @@ function clearMatch(){
   activeIndex=-1;
   colourSetShowActive=false;
   colourSetVisibleSet=null;
+  renderMatchAdvice();
   renderList();
   applyVisibility();
 }
@@ -2818,6 +3210,276 @@ function resize(){
 }
 new ResizeObserver(resize).observe(wrap);
 resize();
+
+// ═══════════════════════════════════
+// GIST SYNC — keeps the palette in a private GitHub Gist
+// ═══════════════════════════════════
+// Three-way merge against the last synced snapshot, so additions, edits
+// and deletions made on any device carry over. If the same paint was
+// changed differently on two devices, this device's version wins; a paint
+// deleted here but edited elsewhere is kept.
+const GIST_FILE='paintspace.json';
+const SYNC_KEYS={token:'ps.sync.token',gist:'ps.sync.gist',base:'ps.sync.base',last:'ps.sync.last'};
+const store={
+  get(k){try{return localStorage.getItem(k);}catch(_){return null;}},
+  set(k,v){try{localStorage.setItem(k,v);return true;}catch(_){return false;}},
+  del(k){try{localStorage.removeItem(k);}catch(_){}}
+};
+let syncBusy=false,syncAgain=false,syncPushTimer=null,suppressNextPush=false;
+
+function syncConfigured(){return !!(store.get(SYNC_KEYS.token)&&store.get(SYNC_KEYS.gist));}
+
+function setSyncState(state,text){
+  document.body.dataset.sync=state||'';
+  const t=document.getElementById('sd-status-text');
+  if(t&&text) t.textContent=text;
+}
+
+// Serialised palette: plain records, nothing derived
+function snapshot(){
+  return colours.map(c=>({name:c.name,brand:c.brand||'',hex:c.hex.toLowerCase(),
+    type:Array.isArray(c.type)?[...c.type]:[c.type||'Normal'],set:c.set||'owned'}));
+}
+function normaliseRecord(r){
+  if(!r||typeof r.hex!=='string'||!/^#[0-9a-f]{6}/i.test(r.hex)) return null;
+  const t=Array.isArray(r.type)?r.type:(r.type?[r.type]:['Normal']);
+  return {name:String(r.name||'Unnamed'),brand:String(r.brand||''),hex:r.hex.slice(0,7).toLowerCase(),
+    type:t.map(String),set:r.set==='tester'?'tester':'owned'};
+}
+// Keys by brand+name; repeats of the same name get #2, #3…
+function keyed(list){
+  const seen={},out=new Map();
+  list.forEach(r=>{
+    const k0=`${r.brand.trim().toLowerCase()}|${r.name.trim().toLowerCase()}`;
+    seen[k0]=(seen[k0]||0)+1;
+    out.set(seen[k0]>1?`${k0}#${seen[k0]}`:k0,r);
+  });
+  return out;
+}
+const recEq=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+const listEq=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+
+function mergePalettes(base,local,remote){
+  const B=keyed(base||[]),L=keyed(local),R=keyed(remote);
+  const out=new Map();
+  const decide=k=>{
+    const b=B.get(k),l=L.get(k),r=R.get(k);
+    if(recEq(l,r)) return l;
+    if(base&&recEq(l,b)) return r;          // only the Gist changed
+    if(base&&recEq(r,b)) return l;          // only this device changed
+    return l||r;                            // both changed: prefer this device, never drop an edit
+  };
+  // Keep this device's order, then anything new from the Gist in its order
+  for(const k of L.keys()){const v=decide(k);if(v)out.set(k,v);}
+  for(const k of R.keys()){if(out.has(k)||L.has(k))continue;const v=decide(k);if(v)out.set(k,v);}
+  return [...out.values()];
+}
+
+function gistContent(list){
+  return '{\n  "app": "PaintSpace",\n  "version": 1,\n  "saved": "'+new Date().toISOString()+'",\n  "paints": [\n'+
+    list.map(r=>'    '+JSON.stringify(r)).join(',\n')+'\n  ]\n}\n';
+}
+
+async function gh(method,path,body){
+  const res=await fetch('https://api.github.com'+path,{
+    method,cache:'no-store',
+    headers:{'Accept':'application/vnd.github+json','Authorization':'Bearer '+store.get(SYNC_KEYS.token),
+             ...(body?{'Content-Type':'application/json'}:{})},
+    body:body?JSON.stringify(body):undefined
+  });
+  if(!res.ok){
+    const err=new Error(
+      res.status===401?'GitHub rejected the token. Check it was copied fully and hasn\'t expired.':
+      res.status===404?'Gist not found. Check the ID, and that the token belongs to the account that owns it.':
+      res.status===403?'GitHub refused the request. The token may be missing the gist permission, or the rate limit was hit.':
+      `GitHub returned an error (${res.status}).`);
+    err.status=res.status;throw err;
+  }
+  return res.json();
+}
+
+async function readGist(id){
+  const g=await gh('GET','/gists/'+id);
+  const f=g.files&&g.files[GIST_FILE];
+  if(!f) return {gist:g,paints:null};
+  let text=f.content;
+  if(f.truncated){text=await (await fetch(f.raw_url,{cache:'no-store'})).text();}
+  let data;
+  try{data=JSON.parse(text);}catch(_){throw new Error(`The Gist's ${GIST_FILE} isn't valid JSON, so it wasn't used.`);}
+  const paints=(Array.isArray(data)?data:data.paints||[]).map(normaliseRecord).filter(Boolean);
+  return {gist:g,paints};
+}
+
+async function writeGist(id,list){
+  return gh('PATCH','/gists/'+id,{files:{[GIST_FILE]:{content:gistContent(list)}}});
+}
+
+// Replace the in-app palette with a new list, keeping the selection if possible
+function replacePalette(list){
+  const selKey=activeIndex>=0&&colours[activeIndex]?`${colours[activeIndex].brand}|${colours[activeIndex].name}`:null;
+  pointMeshes.forEach((m,i)=>{
+    scene.remove(m);scene.remove(outlineMeshes[i]);
+    if(m.material.map)m.material.map.dispose();
+    m.material.dispose();outlineMeshes[i].material.dispose();
+  });
+  pointMeshes.length=0;outlineMeshes.length=0;colours.length=0;
+  if(activeIndex>=0)activeIndex=-1;
+  matchHighlightIndices=[];colourSetVisibleSet=null;colourSetShowActive=false;
+  clearConnectors();
+  list.forEach(r=>addColour({...r,type:[...r.type]}));
+  rebuildBrandFilters();updateFilterCounts();renderList();applyVisibility();computeGap();
+  if(currentMatchHex) runColourMatch(currentMatchHex);
+  if(selKey){const i=colours.findIndex(c=>`${c.brand}|${c.name}`===selKey);if(i>=0)highlightItem(i);}
+  suppressNextPush=true;
+  dbSave();
+}
+
+async function syncNow(){
+  if(!syncConfigured())return;
+  if(syncBusy){syncAgain=true;return;}
+  if(!navigator.onLine){setSyncState('offline','Offline. Will sync when you\'re back online.');return;}
+  syncBusy=true;setSyncState('busy','Syncing…');showSyncError('');
+  try{
+    const id=store.get(SYNC_KEYS.gist);
+    const {paints:remote}=await readGist(id);
+    const local=snapshot();
+    let base=null;try{base=JSON.parse(store.get(SYNC_KEYS.base)||'null');}catch(_){}
+    const merged=remote?mergePalettes(base,local,remote):local;
+    if(!listEq(merged,local)) replacePalette(merged);
+    if(!remote||!listEq(merged,remote)) await writeGist(id,merged);
+    store.set(SYNC_KEYS.base,JSON.stringify(merged));
+    store.set(SYNC_KEYS.last,new Date().toISOString());
+    setSyncState('ok','Synced '+new Date().toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})+` · ${merged.length} paints`);
+  }catch(e){
+    const offline=!navigator.onLine||e instanceof TypeError;
+    setSyncState(offline?'offline':'error',offline?'Couldn\'t reach GitHub. Will retry.':'Sync failed');
+    if(!offline) showSyncError(e.message);
+  }finally{
+    syncBusy=false;
+    if(syncAgain){syncAgain=false;syncNow();}
+  }
+}
+
+// Called after every local save
+function onLocalSaved(){
+  if(suppressNextPush){suppressNextPush=false;return;}
+  if(!syncConfigured())return;
+  setSyncState('busy','Changes waiting to sync…');
+  clearTimeout(syncPushTimer);
+  syncPushTimer=setTimeout(syncNow,1500);
+}
+function syncOnStartup(){
+  if(syncConfigured()){setSyncState('busy','Syncing…');syncNow();}
+}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')syncNow();});
+window.addEventListener('online',()=>syncNow());
+
+// ── Dialog ──
+const syncDialog=document.getElementById('sync-dialog');
+const sdPanels={setup:'sd-setup',choose:'sd-choose',connected:'sd-connected'};
+function showSdPanel(name){Object.entries(sdPanels).forEach(([k,id])=>document.getElementById(id).hidden=k!==name);}
+function showSyncError(msg){const el=document.getElementById('sd-error');el.textContent=msg||'';el.hidden=!msg;}
+function refreshSyncDialog(){
+  if(syncConfigured()){
+    const id=store.get(SYNC_KEYS.gist);
+    document.getElementById('sd-gist-id').textContent=id;
+    document.getElementById('sd-gist-link').href='https://gist.github.com/'+id;
+    showSdPanel('connected');
+  } else showSdPanel('setup');
+}
+document.getElementById('sync-btn').addEventListener('click',()=>{
+  refreshSyncDialog();
+  if(syncDialog.showModal)syncDialog.showModal();else syncDialog.setAttribute('open','');
+});
+
+function parseGistId(v){
+  v=v.trim();if(!v)return '';
+  const m=v.match(/([0-9a-f]{20,})\/?(?:#.*)?$/i);
+  return m?m[1]:v;
+}
+
+let pendingConnect=null; // {token,id,remote}
+async function connectWith(token,id){
+  const btn=document.getElementById('sd-connect');
+  btn.disabled=true;btn.textContent='Connecting…';showSyncError('');
+  const prevToken=store.get(SYNC_KEYS.token);
+  if(!store.set(SYNC_KEYS.token,token)){
+    showSyncError('This browser won\'t let PaintSpace store settings (private browsing?), so sync can\'t be set up here.');
+    btn.disabled=false;btn.textContent='Connect';return;
+  }
+  try{
+    if(!id){
+      // First device: create a secret Gist holding this palette
+      const g=await gh('POST','/gists',{description:'PaintSpace palette',public:false,
+        files:{[GIST_FILE]:{content:gistContent(snapshot())}}});
+      finishConnect(g.id,snapshot());
+    } else {
+      const {paints:remote}=await readGist(id);
+      const local=snapshot();
+      if(!remote||!remote.length){
+        await writeGist(id,local);finishConnect(id,local);
+      } else if(listEq(remote,local)){
+        finishConnect(id,local);
+      } else {
+        pendingConnect={id,remote};
+        document.getElementById('sd-remote-count').textContent=remote.length;
+        document.getElementById('sd-local-count').textContent=local.length;
+        showSdPanel('choose');
+      }
+    }
+  }catch(e){
+    if(prevToken)store.set(SYNC_KEYS.token,prevToken);else store.del(SYNC_KEYS.token);
+    showSyncError(e instanceof TypeError?'Couldn\'t reach GitHub. Check your connection.':e.message);
+  }finally{btn.disabled=false;btn.textContent='Connect';}
+}
+function finishConnect(id,base){
+  store.set(SYNC_KEYS.gist,id);
+  store.set(SYNC_KEYS.base,JSON.stringify(base));
+  store.set(SYNC_KEYS.last,new Date().toISOString());
+  pendingConnect=null;
+  setSyncState('ok',`Synced · ${colours.length} paints`);
+  refreshSyncDialog();
+}
+document.getElementById('sd-connect').addEventListener('click',()=>{
+  const token=document.getElementById('sd-token').value.trim();
+  if(!token){showSyncError('Paste a GitHub token first.');return;}
+  connectWith(token,parseGistId(document.getElementById('sd-gist').value));
+});
+document.getElementById('sd-use-remote').addEventListener('click',()=>{
+  if(!pendingConnect)return;
+  const {id,remote}=pendingConnect;
+  replacePalette(remote);
+  finishConnect(id,remote);
+});
+document.getElementById('sd-merge').addEventListener('click',async()=>{
+  if(!pendingConnect)return;
+  const {id,remote}=pendingConnect;
+  const merged=mergePalettes(null,snapshot(),remote);
+  try{
+    replacePalette(merged);
+    await writeGist(id,merged);
+    finishConnect(id,merged);
+  }catch(e){showSyncError(e.message);}
+});
+document.getElementById('sd-cancel-choose').addEventListener('click',()=>{
+  pendingConnect=null;store.del(SYNC_KEYS.token);showSdPanel('setup');
+});
+document.getElementById('sd-sync-now').addEventListener('click',()=>syncNow());
+document.getElementById('sd-copy').addEventListener('click',async e=>{
+  const id=store.get(SYNC_KEYS.gist);
+  try{await navigator.clipboard.writeText(id);e.target.textContent='Copied';}
+  catch(_){const r=document.createRange();r.selectNodeContents(document.getElementById('sd-gist-id'));
+    const sel=getSelection();sel.removeAllRanges();sel.addRange(r);e.target.textContent='Selected';}
+  setTimeout(()=>e.target.textContent='Copy',1500);
+});
+document.getElementById('sd-disconnect').addEventListener('click',()=>{
+  Object.values(SYNC_KEYS).forEach(k=>store.del(k));
+  setSyncState('','');
+  document.getElementById('sd-token').value='';
+  document.getElementById('sd-gist').value='';
+  showSyncError('');
+  showSdPanel('setup');
+});
 
 // ═══════════════════════════════════
 // MOBILE LAYOUT: header menu, bottom sheet, touch hints
