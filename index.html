@@ -1568,6 +1568,11 @@ function postLoad(){
   updateFilterCounts();
   renderList();
   computeGap();
+  const {list:deduped,removed}=dedupeRecords(snapshot());
+  if(removed){
+    replacePalette(deduped,{push:true});
+    showToast(`Removed ${removed} duplicate paint${removed>1?'s':''}`);
+  }
   if(typeof syncOnStartup==='function') syncOnStartup();
 }
 
@@ -2507,45 +2512,153 @@ document.getElementById('toggle-panel-btn').addEventListener('click',()=>{
 });
 
 // ═══════════════════════════════════
-// CSV IMPORT
+// CSV IMPORT — updates matching paints instead of adding copies
 // ═══════════════════════════════════
+const PAINT_TYPES=['Normal','Metallic','Air','Wash','Contrast','Technical','Fluo'];
+
+// One CSV line → fields (handles quotes and commas inside quotes)
+function parseCSVLine(line){
+  const out=[];let cur='',q=false;
+  for(let i=0;i<line.length;i++){
+    const ch=line[i];
+    if(q){
+      if(ch==='"'&&line[i+1]==='"'){cur+='"';i++;}
+      else if(ch==='"')q=false;
+      else cur+=ch;
+    } else if(ch==='"')q=true;
+    else if(ch===','){out.push(cur);cur='';}
+    else cur+=ch;
+  }
+  out.push(cur);
+  return out.map(c=>c.trim());
+}
+
+// Owned column → 'owned' | 'tester' | undefined (blank = not stated)
+function parseOwned(v){
+  const t=(v||'').trim().toLowerCase();
+  if(!t) return undefined;
+  if(['1','yes','y','true','owned','x','✓'].includes(t)) return 'owned';
+  if(['0','no','n','false','tester','not owned'].includes(t)) return 'tester';
+  return undefined;
+}
+function parseTypes(v){
+  const t=(v||'').split(/[|;,]/).map(x=>x.trim()).map(x=>PAINT_TYPES.find(p=>p.toLowerCase()===x.toLowerCase())).filter(Boolean);
+  return t.length?[...new Set(t)]:['Normal'];
+}
+const HEX_RE=/^#?[0-9a-fA-F]{6}([0-9a-fA-F]{2})?$/;
+
+function parsePaintCSV(text){
+  const lines=text.split(/\r?\n/).filter(l=>l.trim());
+  if(!lines.length) return [];
+  const head=parseCSVLine(lines[0]).map(h=>h.toLowerCase());
+  const hasHeader=head.some(h=>/name|hex|brand|owned|type/.test(h));
+  const rows=[];
+  if(hasHeader){
+    const col=re=>head.findIndex(h=>re.test(h));
+    const iHex=col(/hex/), iName=col(/name/), iBrand=col(/brand/), iType=col(/type/), iOwned=col(/owned|have|set/);
+    lines.slice(1).forEach(line=>{
+      const f=parseCSVLine(line);
+      let hex=iHex>=0?f[iHex]:f.find(c=>HEX_RE.test(c));
+      if(!hex||!HEX_RE.test(hex)) return;
+      hex=(hex.startsWith('#')?hex:'#'+hex).slice(0,7).toLowerCase();
+      rows.push({
+        name:(iName>=0&&f[iName])||'Unnamed',
+        brand:iBrand>=0?(f[iBrand]||''):'',
+        hex,
+        type:parseTypes(iType>=0?f[iType]:''),
+        owned:iOwned>=0?parseOwned(f[iOwned]):undefined
+      });
+    });
+  } else {
+    // No header: hex is the #rrggbb field; first text field is the name, second the brand
+    lines.forEach(line=>{
+      const f=parseCSVLine(line);
+      const hexF=f.find(c=>HEX_RE.test(c));
+      if(!hexF) return;
+      const typeF=f.find(c=>c.split(/[|;]/).some(t=>PAINT_TYPES.some(p=>p.toLowerCase()===t.trim().toLowerCase())));
+      const ownedF=f.find(c=>c!==hexF&&parseOwned(c)!==undefined);
+      const texts=f.filter(c=>c&&c!==hexF&&c!==typeF&&c!==ownedF&&!/^\d+(\.\d+)?$/.test(c));
+      rows.push({name:texts[0]||'Unnamed',brand:texts[1]||'',
+        hex:(hexF.startsWith('#')?hexF:'#'+hexF).slice(0,7).toLowerCase(),
+        type:parseTypes(typeF),owned:parseOwned(ownedF)});
+    });
+  }
+  return rows;
+}
+
+// Identity of a paint: name + brand + types (case-insensitive, type order ignored)
+function paintKey(r){
+  const t=(Array.isArray(r.type)?r.type:[r.type||'Normal']).map(x=>x.toLowerCase()).sort().join('|');
+  return `${(r.name||'').trim().toLowerCase()}¦${(r.brand||'').trim().toLowerCase()}¦${t}`;
+}
+
+// Collapse copies: keep the first position, the latest copy's details,
+// and owned if any copy is owned.
+function dedupeRecords(list){
+  const pos=new Map(),out=[];
+  list.forEach(r=>{
+    const k=paintKey(r);
+    if(!pos.has(k)){pos.set(k,out.length);out.push({...r});return;}
+    const i=pos.get(k), prev=out[i];
+    out[i]={...r,set:(prev.set==='owned'||r.set==='owned')?'owned':'tester'};
+  });
+  return {list:out,removed:list.length-out.length};
+}
+
+function showToast(msg,ms=3200){
+  let t=document.getElementById('info-toast');
+  if(!t){
+    t=document.createElement('div');t.id='info-toast';
+    t.style.cssText=`position:fixed;left:50%;bottom:22px;transform:translateX(-50%);max-width:min(420px,90vw);
+      padding:9px 14px;background:var(--ink);color:var(--paper);font-size:.78rem;line-height:1.4;border-radius:2px;
+      box-shadow:0 6px 18px rgba(0,0,0,.3);opacity:0;transition:opacity .3s;pointer-events:none;z-index:1000;text-align:center`;
+    document.body.appendChild(t);
+  }
+  t.textContent=msg;t.style.opacity='1';
+  clearTimeout(t._t);t._t=setTimeout(()=>t.style.opacity='0',ms);
+}
+
 document.getElementById('csv-file').addEventListener('change',function(){
   const file=this.files[0];
   if(!file)return;
+  const input=this;
   const reader=new FileReader();
   reader.onload=e=>{
-    const lines=e.target.result.split(/\r?\n/).filter(l=>l.trim());
-    if(!lines.length)return;
-    const firstLow=lines[0].toLowerCase();
-    const dataLines=(firstLow.includes('name')||firstLow.includes('hex')||firstLow.includes('brand'))
-      ?lines.slice(1):lines;
-    let added=0;
-    dataLines.forEach(line=>{
-      const cols=line.split(',').map(c=>c.trim().replace(/^"|"$/g,''));
-      let hex=null;
-      cols.forEach(c=>{if(/^#?[0-9a-fA-F]{6}([0-9a-fA-F]{2})?$/.test(c)){hex=(c.startsWith('#')?c:'#'+c).slice(0,7);}});
-      if(!hex)return;
-      const strs=cols.filter(c=>!/^#?[0-9a-fA-F]{6}([0-9a-fA-F]{2})?$/.test(c)&&!/^\d+(\.\d+)?$/.test(c)&&c.length>0);
-      const TYPES=['Normal','Metallic','Air','Wash','Contrast','Technical','Fluo'];
-      const typeCol=strs.find(s=>s.split(/[|;]/).map(t=>t.trim()).some(t=>TYPES.includes(t)));
-      const typeArr=typeCol
-        ?typeCol.split(/[|;,]/).map(t=>t.trim()).filter(t=>TYPES.includes(t))
-        :['Normal'];
-      // Set: '1' or 'owned' → owned; blank or anything else → tester
-      const rawCols=cols.map(c=>c.trim().replace(/^"|"$/g,''));
-      const setCol=rawCols.find(c=>c==='1'||c.toLowerCase()==='owned'||c.toLowerCase()==='tester');
-      const setVal=(setCol==='1'||setCol?.toLowerCase()==='owned')?'owned':'tester';
-      const nameStrs=strs.filter(s=>s!==typeCol&&s!=='1'&&s.toLowerCase()!=='owned'&&s.toLowerCase()!=='tester');
-      addColour({name:nameStrs[0]||'Unnamed',brand:nameStrs[1]||'',hex,type:typeArr.length?typeArr:['Normal'],set:setVal});
-      added++;
+    input.value='';
+    // Rows repeated within the file collapse to one: later rows win,
+    // and Owned takes the last value the file actually states
+    const byKey=new Map();
+    parsePaintCSV(e.target.result).forEach(r=>{
+      const k=paintKey(r), prev=byKey.get(k);
+      byKey.set(k,prev?{...r,owned:r.owned||prev.owned}:r);
     });
-    renderList();
-    rebuildBrandFilters();
-    updateFilterCounts();
-    applyVisibility();
-    scheduleSave();
-    this.value='';
-    if(!added)alert('No valid colours found.\nExpected a column with a #hex code.');
+    const rows=[...byKey.values()];
+    if(!rows.length){alert('No valid colours found.\nExpected a column with a #hex code.');return;}
+    // Start from the current palette with any existing copies already merged
+    const {list,removed:preDupes}=dedupeRecords(snapshot());
+    const index=new Map(list.map((r,i)=>[paintKey(r),i]));
+    let added=0,updated=0,same=0;
+    rows.forEach(row=>{
+      const k=paintKey(row);
+      const rec={name:row.name,brand:row.brand,hex:row.hex,type:row.type};
+      if(index.has(k)){
+        const cur=list[index.get(k)];
+        // Owned is only changed when the CSV says so; a blank keeps what's there
+        const next={...cur,...rec,set:row.owned||cur.set};
+        if(JSON.stringify(next)===JSON.stringify(cur)) same++; else {list[index.get(k)]=next;updated++;}
+      } else {
+        index.set(k,list.length);
+        list.push({...rec,set:row.owned||'tester'});
+        added++;
+      }
+    });
+    replacePalette(list,{push:true});
+    const bits=[];
+    if(added)bits.push(`${added} added`);
+    if(updated)bits.push(`${updated} updated`);
+    if(same)bits.push(`${same} unchanged`);
+    if(preDupes)bits.push(`${preDupes} duplicate${preDupes>1?'s':''} removed`);
+    showToast('Import: '+bits.join(' · '));
   };
   reader.readAsText(file);
 });
@@ -2557,11 +2670,11 @@ document.getElementById('export-btn').addEventListener('click',()=>{
   const rows=[colourMode==='lch'?'Name,Brand,Types,Owned,Hex,Lightness,Chroma,Hue_deg':'Name,Brand,Types,Owned,Hex,Hue_deg,Sat_pct,Val_pct'];
   colours.forEach(c=>{
     const typeArr=Array.isArray(c.type)?c.type:[c.type||'Normal'];
-    const ownedFlag=c.set==='owned'?'1':'';
+    const ownedFlag=c.set==='owned'?'1':'0';
     const vals=colourMode==='lch'
       ?[Math.round(c.lch.L*100),Math.round(c.lch.C*C_MAX),Math.round(c.lch.h*360)]
       :[Math.round(c.hsv.h*360),Math.round(c.hsv.s*100),Math.round(c.hsv.v*100)];
-    rows.push([`"${c.name}"`,`"${c.brand||''}"`,`"${typeArr.join('|')}"`,ownedFlag,c.hex,...vals].join(','));
+    rows.push([`"${c.name.replace(/"/g,'""')}"`,`"${(c.brand||'').replace(/"/g,'""')}"`,`"${typeArr.join('|')}"`,ownedFlag,c.hex,...vals].join(','));
   });
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([rows.join('\n')],{type:'text/csv'}));
@@ -3315,7 +3428,7 @@ async function writeGist(id,list){
 }
 
 // Replace the in-app palette with a new list, keeping the selection if possible
-function replacePalette(list){
+function replacePalette(list,opts={}){
   const selKey=activeIndex>=0&&colours[activeIndex]?`${colours[activeIndex].brand}|${colours[activeIndex].name}`:null;
   pointMeshes.forEach((m,i)=>{
     scene.remove(m);scene.remove(outlineMeshes[i]);
@@ -3330,7 +3443,7 @@ function replacePalette(list){
   rebuildBrandFilters();updateFilterCounts();renderList();applyVisibility();computeGap();
   if(currentMatchHex) runColourMatch(currentMatchHex);
   if(selKey){const i=colours.findIndex(c=>`${c.brand}|${c.name}`===selKey);if(i>=0)highlightItem(i);}
-  suppressNextPush=true;
+  if(!opts.push) suppressNextPush=true;
   dbSave();
 }
 
@@ -3344,7 +3457,7 @@ async function syncNow(){
     const {paints:remote}=await readGist(id);
     const local=snapshot();
     let base=null;try{base=JSON.parse(store.get(SYNC_KEYS.base)||'null');}catch(_){}
-    const merged=remote?mergePalettes(base,local,remote):local;
+    const merged=dedupeRecords(remote?mergePalettes(base,local,remote):local).list;
     if(!listEq(merged,local)) replacePalette(merged);
     if(!remote||!listEq(merged,remote)) await writeGist(id,merged);
     store.set(SYNC_KEYS.base,JSON.stringify(merged));
