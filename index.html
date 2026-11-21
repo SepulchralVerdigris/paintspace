@@ -338,14 +338,6 @@ canvas{display:block;width:100%!important;height:100%!important}
   font-family:'Courier Prime',monospace;font-size:.72rem;
   color:var(--muted);margin-bottom:6px;
 }
-#clear-btn{
-  display:flex;align-items:center;gap:6px;width:100%;
-  padding:8px 14px;border:none;border-top:1px solid var(--border);
-  background:transparent;color:var(--muted);
-  font-family:'Courier Prime',monospace;font-size:.75rem;
-  cursor:pointer;transition:background .12s,color .12s;text-align:left;
-}
-#clear-btn:hover{background:#fce8e6;color:var(--accent)}
 /* ── Colour Sets ── */
 #coloursets-inner{padding:10px 14px}
 /* Add paint from swatch (Colour Match) */
@@ -473,6 +465,29 @@ body[data-sync="error"] .sync-dot,body[data-sync="offline"] .sync-dot{background
 #more-btn{position:relative}
 body[data-sync="error"] #more-btn::after,body[data-sync="offline"] #more-btn::after{
   content:'';position:absolute;top:4px;right:4px;width:7px;height:7px;border-radius:50%;background:var(--accent)}
+#palette-dialog{
+  margin:auto;width:min(420px,calc(100vw - 24px));max-height:calc(100dvh - 24px);overflow:auto;
+  border:2px solid var(--ink);border-radius:2px;padding:18px 20px 20px;
+  background:var(--paper);color:var(--ink);box-shadow:0 12px 40px rgba(0,0,0,.35);
+}
+#palette-dialog::backdrop{background:rgba(0,0,0,.45)}
+#palette-dialog h2{font-family:'Bebas Neue',sans-serif;font-weight:400;font-size:1.6rem;letter-spacing:.05em;margin:0 0 2px}
+.pd-opt{
+  display:block;width:100%;text-align:left;margin:0 0 8px;padding:10px 12px;cursor:pointer;
+  background:#fff;border:1.5px solid var(--border);border-radius:2px;color:var(--ink);font-family:inherit;
+}
+.pd-opt:hover{border-color:var(--ink)}
+.pd-opt b{display:block;font-size:.86rem;margin-bottom:2px}
+.pd-opt>span{display:block;font-size:.72rem;color:var(--muted);line-height:1.4}
+.pd-danger b{color:var(--accent)}
+.pd-danger:hover{border-color:var(--accent)}
+.pd-danger.armed{background:var(--accent);border-color:var(--accent)}
+.pd-danger.armed b,.pd-danger.armed>span{color:#fff}
+.pd-sep{font-family:'Courier Prime',monospace;font-size:.68rem;color:var(--muted);margin:14px 0 6px;
+  display:flex;align-items:center;gap:8px}
+.pd-sep::after{content:'';flex:1;border-top:1px solid var(--border)}
+.pd-backup{display:flex;align-items:center;gap:8px;font-size:.78rem;margin:4px 0 0;cursor:pointer}
+.pd-backup input{width:16px;height:16px;accent-color:var(--ink)}
 #sync-dialog{
   margin:auto;
   width:min(400px,calc(100vw - 24px));max-height:calc(100dvh - 24px);overflow:auto;
@@ -604,7 +619,6 @@ header{position:relative;padding-left:max(18px,env(safe-area-inset-left));paddin
   #paint-search{font-size:16px}
   #paint-search-wrap{padding:11px 14px}
   #paint-search-clear{font-size:1.4rem;padding:0 4px}
-  #clear-btn{padding:14px}
   .set-radio-lbl{padding:6px 0}
   #add-btn{min-height:40px}
 }
@@ -658,19 +672,11 @@ header{position:relative;padding-left:max(18px,env(safe-area-inset-left));paddin
       PANEL
     </button>
 
-    <label class="icon-btn">
+    <button class="icon-btn" id="palette-btn" title="Import, export or reset the palette">
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
-        <path d="M8 2v8M5 7l3 3 3-3"/><path d="M2 12v1a1 1 0 001 1h10a1 1 0 001-1v-1"/>
+        <path d="M2 4h12M2 8h12M2 12h7"/><path d="M12 10v5M9.5 12.5h5"/>
       </svg>
-      IMPORT
-      <input type="file" id="csv-file" accept=".csv">
-    </label>
-
-    <button class="icon-btn" id="export-btn">
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
-        <path d="M8 10V2M5 5l3-3 3 3"/><path d="M2 12v1a1 1 0 001 1h10a1 1 0 001-1v-1"/>
-      </svg>
-      EXPORT
+      PALETTE
     </button>
 
     <button class="icon-btn" id="sync-btn" title="Sync palette between devices">
@@ -684,6 +690,28 @@ header{position:relative;padding-left:max(18px,env(safe-area-inset-left));paddin
 
   </div>
 </header>
+
+<dialog id="palette-dialog" aria-labelledby="palette-title">
+  <form method="dialog" class="sd-close-row"><button class="sd-x" aria-label="Close">×</button></form>
+  <h2 id="palette-title">Palette</h2>
+  <p class="sd-p" id="pd-count" style="color:var(--muted);margin-bottom:10px"></p>
+  <input type="file" id="csv-file" accept=".csv,text/csv">
+
+  <button type="button" class="pd-opt" data-act="merge"><b>Add &amp; update from CSV</b>
+    <span>Matching paints (same name, brand and types) are updated, new ones added. Nothing is removed.</span></button>
+  <button type="button" class="pd-opt" data-act="starter"><b>Add starter paints</b>
+    <span>Adds back any of the <span id="pd-starter-n">built-in</span> starter paints you don't have. Nothing is removed.</span></button>
+  <button type="button" class="pd-opt" data-act="export"><b>Export CSV</b>
+    <span>Download your palette as a spreadsheet file.</span></button>
+
+  <div class="pd-sep">Deletes your current paints</div>
+  <button type="button" class="pd-opt pd-danger" data-act="replace"><b>Replace with CSV</b>
+    <span>Deletes every paint, then loads the file.</span></button>
+  <button type="button" class="pd-opt pd-danger" data-act="clear"><b>Clear palette</b>
+    <span>Deletes every paint. Stays empty until you add or import paints.</span></button>
+  <label class="pd-backup"><input type="checkbox" id="pd-backup" checked> Download a backup CSV first</label>
+  <p class="sd-hint" id="pd-sync-note" hidden>Sync is on, so replacing or clearing also changes your other devices.</p>
+</dialog>
 
 <dialog id="sync-dialog" aria-labelledby="sync-title">
   <form method="dialog" class="sd-close-row"><button class="sd-x" aria-label="Close">×</button></form>
@@ -773,10 +801,6 @@ header{position:relative;padding-left:max(18px,env(safe-area-inset-left));paddin
         <span id="paint-search-clear" title="Clear search">×</span>
       </div>
       <div id="colour-list"></div>
-      <button id="clear-btn">
-        <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><line x1="2" y1="2" x2="14" y2="14"/><line x1="14" y1="2" x2="2" y2="14"/></svg>
-        Clear palette
-      </button>
     </div>
 
     <div class="section-header" id="add-header">
@@ -1570,6 +1594,8 @@ function dbSave(){
     });
   });
   tx.oncomplete=()=>{showSaved();if(typeof onLocalSaved==='function')onLocalSaved();};
+  // Remember a deliberately empty palette so the starter paints don't return on reload
+  try{colours.length?localStorage.removeItem('ps.emptyPalette'):localStorage.setItem('ps.emptyPalette','1');}catch(_){}
 }
 
 function dbLoad(){
@@ -1609,9 +1635,11 @@ function scheduleSave(){
 
 // Initialise: load from DB or fall back to INITIAL
 openDB().then(()=>dbLoad()).then(saved=>{
+  let keptEmpty=false;
+  try{keptEmpty=localStorage.getItem('ps.emptyPalette')==='1';}catch(_){}
   if(saved.length>0){
     saved.sort((a,b)=>a.id-b.id).forEach(addColour);
-  } else {
+  } else if(!keptEmpty){
     INITIAL.forEach(addColour);
   }
   postLoad();
@@ -2679,9 +2707,11 @@ function showToast(msg,ms=3200){
   clearTimeout(t._t);t._t=setTimeout(()=>t.style.opacity='0',ms);
 }
 
+let importMode='merge'; // set by the Palette dialog: 'merge' | 'replace'
 document.getElementById('csv-file').addEventListener('change',function(){
   const file=this.files[0];
   if(!file)return;
+  const mode=importMode; importMode='merge';
   const input=this;
   const reader=new FileReader();
   reader.onload=e=>{
@@ -2695,6 +2725,14 @@ document.getElementById('csv-file').addEventListener('change',function(){
     });
     const rows=[...byKey.values()];
     if(!rows.length){alert('No valid colours found.\nExpected a column with a #hex code.');return;}
+    if(mode==='replace'){
+      if(document.getElementById('pd-backup').checked) backupCSV();
+      const list=rows.map(r=>({name:r.name,brand:r.brand,hex:r.hex,type:r.type,set:r.owned||'tester'}));
+      if(currentMatchHex) document.getElementById('clear-match-btn').click();
+      replacePalette(list,{push:true});
+      showToast(`Palette replaced · ${list.length} paint${list.length===1?'':'s'} loaded`);
+      return;
+    }
     // Start from the current palette with any existing copies already merged
     const {list,removed:preDupes}=dedupeRecords(snapshot());
     const index=new Map(list.map((r,i)=>[paintKey(r),i]));
@@ -2727,7 +2765,7 @@ document.getElementById('csv-file').addEventListener('change',function(){
 // ═══════════════════════════════════
 // CSV EXPORT
 // ═══════════════════════════════════
-document.getElementById('export-btn').addEventListener('click',()=>{
+function exportCSV(filename='paintspace_colours.csv'){
   const rows=[colourMode==='lch'?'Name,Brand,Types,Owned,Hex,Lightness,Chroma,Hue_deg':'Name,Brand,Types,Owned,Hex,Hue_deg,Sat_pct,Val_pct'];
   colours.forEach(c=>{
     const typeArr=Array.isArray(c.type)?c.type:[c.type||'Normal'];
@@ -2739,9 +2777,15 @@ document.getElementById('export-btn').addEventListener('click',()=>{
   });
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([rows.join('\n')],{type:'text/csv'}));
-  a.download='paintspace_colours.csv';
-  a.click();
-});
+  a.download=filename;
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+}
+function backupCSV(){
+  if(!colours.length)return;
+  const d=new Date(),pad=n=>String(n).padStart(2,'0');
+  exportCSV(`paintspace_backup_${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}.csv`);
+}
 
 // ═══════════════════════════════════
 // ADD COLOUR
@@ -3037,42 +3081,6 @@ document.querySelectorAll('.type-toggle').forEach(btn=>{
 });
 
 // Clear palette
-const clearBtn=document.getElementById('clear-btn');
-let clearPending=false;
-clearBtn.addEventListener('click',()=>{
-  if(!clearPending){
-    clearPending=true;
-    clearBtn.textContent='Tap again to confirm';
-    clearBtn.style.color='var(--accent)';
-    setTimeout(()=>{
-      clearPending=false;
-      clearBtn.innerHTML='<svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><line x1="2" y1="2" x2="14" y2="14"/><line x1="14" y1="2" x2="2" y2="14"/></svg> Clear palette';
-      clearBtn.style.color='';
-    },3000);
-    return;
-  }
-  // Confirmed — remove all meshes from scene
-  pointMeshes.forEach((m,i)=>{scene.remove(m);scene.remove(outlineMeshes[i]);});
-  pointMeshes.length=0;
-  outlineMeshes.length=0;
-  colours.length=0;
-  activeIndex=-1;
-  matchHighlightIndices=[];
-  matchActive=false;
-  matchVisibleSet=null;
-  clearConnectors();
-  targetMarker.visible=false;
-  targetOutline.visible=false;
-  document.getElementById('match-results').innerHTML='';
-  document.getElementById('match-hex').value='';
-  document.getElementById('match-swatch').style.background='#888';
-  clearPending=false;
-  clearBtn.innerHTML='<svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><line x1="2" y1="2" x2="14" y2="14"/><line x1="14" y1="2" x2="2" y2="14"/></svg> Clear palette';
-  clearBtn.style.color='';
-  renderList();
-  scheduleSave();
-});
-
 function runColourMatch(hex){
   // clear previous
   matchHighlightIndices.forEach(i=>{
@@ -3781,6 +3789,70 @@ document.getElementById('afs-add').addEventListener('click',()=>{
   afsForm.hidden=true;afsOpen.hidden=false;
 });
 document.getElementById('afs-name').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('afs-add').click();});
+
+// ═══════════════════════════════════
+// PALETTE DIALOG — import, export, starter paints, replace, clear
+// ═══════════════════════════════════
+const paletteDialog=document.getElementById('palette-dialog');
+function openPaletteDialog(){
+  document.getElementById('pd-count').textContent=
+    `${colours.length} paint${colours.length===1?'':'s'} in this palette`;
+  document.getElementById('pd-starter-n').textContent=INITIAL.length;
+  document.getElementById('pd-sync-note').hidden=!(typeof syncConfigured==='function'&&syncConfigured());
+  paletteDialog.querySelectorAll('.pd-danger').forEach(disarmPd);
+  if(paletteDialog.showModal)paletteDialog.showModal();else paletteDialog.setAttribute('open','');
+}
+function closePaletteDialog(){paletteDialog.close?paletteDialog.close():paletteDialog.removeAttribute('open');}
+document.getElementById('palette-btn').addEventListener('click',openPaletteDialog);
+
+const pdLabels=new Map();
+function disarmPd(btn){
+  btn.classList.remove('armed');clearTimeout(btn._t);
+  if(pdLabels.has(btn)) btn.querySelector('b').textContent=pdLabels.get(btn);
+}
+function armedOrArm(btn){
+  if(btn.classList.contains('armed')){disarmPd(btn);return true;}
+  const b=btn.querySelector('b');
+  if(!pdLabels.has(btn)) pdLabels.set(btn,b.textContent);
+  btn.classList.add('armed');b.textContent='Tap again to confirm';
+  btn._t=setTimeout(()=>disarmPd(btn),3000);
+  return false;
+}
+
+function addStarterPaints(){
+  const have=new Set(colours.map(paintKey));
+  const missing=INITIAL.filter(r=>!have.has(paintKey(r)));
+  if(!missing.length){showToast('You already have all the starter paints');return;}
+  const list=snapshot().concat(missing.map(r=>({name:r.name,brand:r.brand||'',hex:r.hex.toLowerCase(),
+    type:Array.isArray(r.type)?[...r.type]:[r.type||'Normal'],set:r.set||'owned'})));
+  replacePalette(list,{push:true});
+  showToast(`Added ${missing.length} starter paint${missing.length===1?'':'s'}`);
+}
+
+paletteDialog.addEventListener('click',e=>{
+  const btn=e.target.closest('.pd-opt');if(!btn)return;
+  const csv=document.getElementById('csv-file');
+  switch(btn.dataset.act){
+    case 'merge':
+      importMode='merge';closePaletteDialog();csv.click();break;
+    case 'replace':
+      if(!armedOrArm(btn))return;
+      importMode='replace';closePaletteDialog();csv.click();break;
+    case 'starter':
+      closePaletteDialog();addStarterPaints();break;
+    case 'export':
+      closePaletteDialog();exportCSV();break;
+    case 'clear':{
+      if(!armedOrArm(btn))return;
+      if(document.getElementById('pd-backup').checked) backupCSV();
+      const n=colours.length;
+      if(currentMatchHex) document.getElementById('clear-match-btn').click();
+      replacePalette([],{push:true});
+      closePaletteDialog();
+      showToast(`Palette cleared · ${n} paint${n===1?'':'s'} removed`);
+      break;}
+  }
+});
 
 // ═══════════════════════════════════
 // MOBILE LAYOUT: header menu, bottom sheet, touch hints
